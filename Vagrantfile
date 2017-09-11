@@ -32,7 +32,7 @@ export DEBIAN_FRONTEND=noninteractive
 sudo apt-get autoremove -y && \
 sudo apt-get install git -y && \
 git clone https://github.com/bossjones/reproduce_travisci_docker_permissions_issue.git && \
-git clone git@github.com:KAMI911/ansible-role-sysctl-performance.git && \
+git clone https://github.com/KAMI911/ansible-role-sysctl-performance.git && \
 echo "
 #!/usr/bin/env bash
 
