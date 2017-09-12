@@ -2,6 +2,8 @@
 # vi: set ft=ruby :
 # vim: noai:ts=2:sw=2:et
 
+# source: https://gist.github.com/mohclips/d4c0edf665f47ed59338c6f7c4a18454
+
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
 
@@ -33,25 +35,188 @@ sudo apt-get autoremove -y && \
 sudo apt-get install git -y && \
 git clone https://github.com/bossjones/reproduce_travisci_docker_permissions_issue.git && \
 git clone https://github.com/KAMI911/ansible-role-sysctl-performance.git && \
-echo "
-#!/usr/bin/env bash
+git clone https://github.com/dev-sec/ansible-os-hardening.git && \
+echo "#!/usr/bin/env bash" > reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "set -x" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_USER=vagrant" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_NON_ROOT_USER_UID_OLD=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_NON_ROOT_USER_GID_OLD=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_NON_ROOT_USER_UID=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_NON_ROOT_USER_GID=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_PYENV_PYTHON_VERSION=3.5.2" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "DOCKER_COMPOSE_VERSION=1.8.0" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "DOCKER_VERSION=1.12.6-0~ubuntu-trusty" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "DOCKER_PACKAGE_NAME=docker-engine" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "DEBIAN_FRONTEND=noninteractive" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+sudo chmod +x ./reproduce_travisci_docker_permissions_issue/scripts/bootstrap_with_modified_uid_and_gid.sh && \
+sudo ./reproduce_travisci_docker_permissions_issue/scripts/bootstrap_with_modified_uid_and_gid.sh
 
-set -x
+sudo mkdir -p /home/vagrant/ansible/{roles,group_vars,inventory}
 
-_USER=vagrant
-_NON_ROOT_USER_UID_OLD=1000
-_NON_ROOT_USER_GID_OLD=1000
-_NON_ROOT_USER_UID=1100
-_NON_ROOT_USER_GID=1100
-_PYENV_PYTHON_VERSION=3.5.2
+sudo chown -R vagrant:vagrant /home/vagrant/
 
-DOCKER_COMPOSE_VERSION=1.8.0
-DOCKER_VERSION=1.12.6-0~ubuntu-trusty
-DOCKER_PACKAGE_NAME=docker-engine
-DEBIAN_FRONTEND=noninteractive
-" > reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+cat << EOF > /home/vagrant/ansible/ansible.cfg
+[defaults]
+# Modern servers come and go too often for host key checking to be useful
+roles_path = ./roles
+system_errors = False
+host_key_checking = False
+ask_sudo_pass = False
+retry_files_enabled = False
+gathering = smart
+force_handlers = True
 
-sudo bash ./reproduce_travisci_docker_permissions_issue/scripts/bootstrap_with_modified_uid_and_gid.sh
+[privilege_escalation]
+# Nearly everything requires sudo, so default on
+become = True
+
+[ssh_connection]
+# Speeds things up, but requires disabling requiretty in /etc/sudoers
+pipelining = True
+EOF
+
+cat << EOF > /home/vagrant/ansible/playbook.yml
+---
+- hosts: all
+  roles:
+    - sysctl-performance
+EOF
+
+cat << EOF > /home/vagrant/ansible/hosts
+localhost ansible_connection=local ansible_python_interpreter=/usr/bin/python2
+EOF
+
+cat << EOF > /home/vagrant/ansible/galaxy.txt
+debops.ansible_plugins
+debops.apache
+debops.apt
+debops.apt_cacher_ng
+debops.apt_install
+debops.apt_listchanges
+debops.apt_preferences
+debops.apt_proxy
+debops.atd
+debops.auth
+debops.authorized_keys
+debops.avahi
+debops.backporter
+debops.bootstrap
+debops.boxbackup
+debops.console
+debops.core
+debops.cron
+debops.cryptsetup
+debops.debops
+debops.debops_api
+debops.debops_fact
+debops.dhcpd
+debops.dhparam
+debops.dnsmasq
+debops.docker
+debops.docker_gen
+debops.dokuwiki
+debops.dovecot
+debops.elastic_co
+debops.elasticsearch
+debops.environment
+debops.etc_aliases
+debops.etc_services
+debops.etherpad
+debops.fail2ban
+debops.fcgiwrap
+debops.ferm
+debops.gitlab
+debops.gitlab_ci
+debops.gitlab_ci_runner
+debops.gitlab_runner
+debops.gitusers
+debops.golang
+debops.grub
+debops.gunicorn
+debops.hashicorp
+debops.hwraid
+debops.ifupdown
+debops.ipxe
+debops.iscsi
+debops.java
+debops.kibana
+debops.kvm
+debops.librenms
+debops.libvirt
+debops.libvirtd
+debops.libvirtd_qemu
+debops.logrotate
+debops.lvm
+debops.lxc
+debops.mailman
+debops.mariadb
+debops.mariadb_server
+debops.memcached
+debops.monit
+debops.monkeysphere
+debops.mosquitto
+debops.mysql
+debops.netbox
+debops.nfs
+debops.nfs_server
+debops.nginx
+debops.nodejs
+debops.nsswitch
+debops.ntp
+debops.nullmailer
+debops.opendkim
+debops.openvz
+debops.owncloud
+debops.persistent_paths
+debops.php
+debops.php5
+debops.phpipam
+debops.phpmyadmin
+debops.pki
+debops.postconf
+debops.postfix
+debops.postgresql
+debops.postgresql_server
+debops.postscreen
+debops.postwhite
+debops.preseed
+debops.rabbitmq_management
+debops.rabbitmq_server
+debops.radvd
+debops.rails_deploy
+debops.redis
+debops.reprepro
+debops.resources
+debops.root_account
+debops.rsnapshot
+debops.rstudio_server
+debops.rsyslog
+debops.ruby
+debops.salt
+debops.samba
+debops.saslauthd
+debops.secret
+debops.sftpusers
+debops.sks
+debops.slapd
+debops.smstools
+debops.snmpd
+debops.sshd
+debops.stunnel
+debops.swapfile
+debops.sysctl
+debops.tcpwrappers
+debops.tftpd
+debops.tgt
+debops.tinc
+debops.unattended_upgrades
+debops.unbound
+debops.users
+EOF
+
+cd /home/vagrant/ansible/roles
+git clone https://github.com/KAMI911/ansible-role-sysctl-performance sysctl-performance
+ansible-galaxy install debops.rsyslog
 SHELL
 
 $redhat_network = <<SHELL
@@ -62,11 +227,11 @@ SHELL
 # config.vm.network "public_network", bridge: "#{INTERNET_INTERFACE}"
 
 servers = {
-  "ansible01" => { :ip => "172.30.5.60", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
-  "docker-engine01" => { :ip => "172.30.5.61", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
-  "docker-engine02" => { :ip => "172.30.5.62", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
-  "docker-engine03" => { :ip => "172.30.5.63", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
-  "docker-engine04" => { :ip => "172.30.5.64", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' }
+  "ansible01" => { :ip => "172.30.5.60", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
+  "docker-engine01" => { :ip => "172.30.5.61", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
+  "docker-engine02" => { :ip => "172.30.5.62", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
+  "docker-engine03" => { :ip => "172.30.5.63", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
+  "docker-engine04" => { :ip => "172.30.5.64", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script }
 }
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -96,6 +261,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         v.cpus = info[:cpus]
         v.customize ["modifyvm", :id, "--hwvirtex", "on"]
       end
+
+    # source: https://github.com/mitchellh/vagrant/issues/1673
+    #   config.vm.provision "fix-no-tty", type: "shell" do |s|
+    #     s.privileged = false
+    #     s.inline = "sudo sed -i '/tty/!s/mesg n/tty -s \\&\\& mesg n/' /root/.profile"
+    # end
 
       #
       # do some provisioning - but only once
