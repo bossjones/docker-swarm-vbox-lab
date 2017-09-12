@@ -95,26 +95,21 @@ cat << EOF > /home/vagrant/ansible/playbook.yml
         item: nofile
         value: 64000
   roles:
-    - ulimit
-    - sysctl-performance
-    - debops.rsyslog
-  tasks:
-    - name: Set Time Zone
-      hosts: Ubuntu
-      gather_facts: False
-      tasks:
-        - name: Set timezone variables
-          copy: content='UTC\n'
-                dest=/etc/timezone
-                owner=root
-                group=root
-                mode=0644
-                backup=yes
-          notify:
-            - update timezone
-      handlers:
-        - name: update timezone
-          command: dpkg-reconfigure --frontend noninteractive tzdata
+    - role: ulimit
+    - role: sysctl-performance
+  # tasks:
+  #   - name: Set Time Zone
+  #     hosts: Ubuntu
+  #     gather_facts: False
+  #   - name: Set timezone variables
+  #     copy: content='UTC\n'
+  #           dest=/etc/timezone
+  #           owner=root
+  #           group=root
+  #           mode=0644
+  #           backup=yes
+  #   - name: update timezone
+  #     command: dpkg-reconfigure --frontend noninteractive tzdata
 EOF
 
 cat << EOF > /home/vagrant/ansible/hosts
@@ -249,10 +244,10 @@ debops.unbound
 debops.users
 EOF
 
-cd /home/vagrant/ansible/roles
-git clone https://github.com/KAMI911/ansible-role-sysctl-performance sysctl-performance
-git clone https://github.com/picotrading/ansible-ulimit ulimit
-ansible-galaxy install debops.rsyslog
+cd /home/vagrant/ansible/roles && \
+git clone https://github.com/KAMI911/ansible-role-sysctl-performance sysctl-performance && \
+git clone https://github.com/picotrading/ansible-ulimit ulimit && \
+# ansible-galaxy install debops.rsyslog
 
 cd /home/vagrant/ansible
 
