@@ -256,7 +256,7 @@ ansible-galaxy install debops.rsyslog
 
 cd /home/vagrant/ansible
 
-ansible-playbook -i hosts playbok.yml
+ansible-playbook -i hosts playbook.yml
 
 cd /home/vagrant
 
@@ -287,17 +287,18 @@ SHELL
 # config.vm.network "public_network", bridge: "#{INTERNET_INTERFACE}"
 
 servers = {
-  "ansible01" => { :ip => "172.30.5.60", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
-  "docker-engine01" => { :ip => "172.30.5.61", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
-  "docker-engine02" => { :ip => "172.30.5.62", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
-  "docker-engine03" => { :ip => "172.30.5.63", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
-  "docker-engine04" => { :ip => "172.30.5.64", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script }
+  "ansible01" => { :ip => "172.30.5.60", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
+  "docker-engine01" => { :ip => "172.30.5.61", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
+  "docker-engine02" => { :ip => "172.30.5.62", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
+  "docker-engine03" => { :ip => "172.30.5.63", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
+  "docker-engine04" => { :ip => "172.30.5.64", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' }
 }
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.box_check_update = false
   config.ssh.forward_agent = true
+  config.ssh.keep_alive  = 5
   # enable logging in via ssh with a password
   #config.ssh.username = "vagrant"
   #config.ssh.password = "vagrant"
