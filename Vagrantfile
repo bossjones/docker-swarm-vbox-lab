@@ -32,24 +32,28 @@ SHELL
 $docker_script = <<SHELL
 export DEBIAN_FRONTEND=noninteractive
 sudo apt-get autoremove -y && \
-sudo apt-get install git -y && \
-git clone https://github.com/bossjones/reproduce_travisci_docker_permissions_issue.git && \
-git clone https://github.com/KAMI911/ansible-role-sysctl-performance.git && \
-git clone https://github.com/dev-sec/ansible-os-hardening.git && \
-echo "#!/usr/bin/env bash" > reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "set -x" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "_USER=vagrant" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "_NON_ROOT_USER_UID_OLD=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "_NON_ROOT_USER_GID_OLD=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "_NON_ROOT_USER_UID=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "_NON_ROOT_USER_GID=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "_PYENV_PYTHON_VERSION=3.5.2" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "DOCKER_COMPOSE_VERSION=1.8.0" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "DOCKER_VERSION=1.12.6-0~ubuntu-trusty" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "DOCKER_PACKAGE_NAME=docker-engine" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-echo "DEBIAN_FRONTEND=noninteractive" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
-sudo chmod +x ./reproduce_travisci_docker_permissions_issue/scripts/bootstrap_with_modified_uid_and_gid.sh && \
-sudo ./reproduce_travisci_docker_permissions_issue/scripts/bootstrap_with_modified_uid_and_gid.sh
+sudo apt-get update -yqq && \
+sudo apt-get install -yqq software-properties-common \
+                   python-software-properties && \
+sudo apt-get install -yqq build-essential \
+                   libssl-dev \
+                   libreadline-dev \
+                   wget curl \
+                   openssh-server && \
+sudo apt-get install -yqq python-setuptools \
+                   perl pkg-config \
+                   python python-pip \
+                   python-dev && \
+
+sudo easy_install --upgrade pip && \
+sudo easy_install --upgrade setuptools; \
+sudo pip install setuptools --upgrade && \
+
+sudo add-apt-repository -y ppa:git-core/ppa && \
+sudo add-apt-repository -y ppa:ansible/ansible && \
+
+sudo apt-get update -yqq && \
+sudo apt-get install -yqq git lsof strace ansible && \
 
 sudo mkdir -p /home/vagrant/ansible/{roles,group_vars,inventory}
 
@@ -78,8 +82,39 @@ EOF
 cat << EOF > /home/vagrant/ansible/playbook.yml
 ---
 - hosts: all
+  become: yes
+  become_method: sudo
+  vars:
+    ulimit_config:
+      - domain: '*'
+        type: soft
+        item: nofile
+        value: 64000
+      - domain: '*'
+        type: hard
+        item: nofile
+        value: 64000
   roles:
+    - ulimit
     - sysctl-performance
+    - debops.rsyslog
+  tasks:
+    - name: Set Time Zone
+      hosts: Ubuntu
+      gather_facts: False
+      tasks:
+        - name: Set timezone variables
+          copy: content='UTC\n'
+                dest=/etc/timezone
+                owner=root
+                group=root
+                mode=0644
+                backup=yes
+          notify:
+            - update timezone
+      handlers:
+        - name: update timezone
+          command: dpkg-reconfigure --frontend noninteractive tzdata
 EOF
 
 cat << EOF > /home/vagrant/ansible/hosts
@@ -216,7 +251,32 @@ EOF
 
 cd /home/vagrant/ansible/roles
 git clone https://github.com/KAMI911/ansible-role-sysctl-performance sysctl-performance
+git clone https://github.com/picotrading/ansible-ulimit ulimit
 ansible-galaxy install debops.rsyslog
+
+cd /home/vagrant/ansible
+
+ansible-playbook -i hosts playbok.yml
+
+cd /home/vagrant
+
+git clone https://github.com/bossjones/reproduce_travisci_docker_permissions_issue.git && \
+git clone https://github.com/KAMI911/ansible-role-sysctl-performance.git && \
+git clone https://github.com/dev-sec/ansible-os-hardening.git && \
+echo "#!/usr/bin/env bash" > reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "set -x" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_USER=vagrant" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_NON_ROOT_USER_UID_OLD=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_NON_ROOT_USER_GID_OLD=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_NON_ROOT_USER_UID=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_NON_ROOT_USER_GID=1000" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "_PYENV_PYTHON_VERSION=3.5.2" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "DOCKER_COMPOSE_VERSION=1.8.0" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "DOCKER_VERSION=1.12.6-0~ubuntu-trusty" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "DOCKER_PACKAGE_NAME=docker-engine" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+echo "DEBIAN_FRONTEND=noninteractive" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
+sudo chmod +x ./reproduce_travisci_docker_permissions_issue/scripts/bootstrap_with_modified_uid_and_gid.sh && \
+sudo ./reproduce_travisci_docker_permissions_issue/scripts/bootstrap_with_modified_uid_and_gid.sh
 SHELL
 
 $redhat_network = <<SHELL
