@@ -247,13 +247,9 @@ EOF
 cd /home/vagrant/ansible/roles && \
 git clone https://github.com/KAMI911/ansible-role-sysctl-performance sysctl-performance && \
 git clone https://github.com/picotrading/ansible-ulimit ulimit && \
-# ansible-galaxy install debops.rsyslog
-
-cd /home/vagrant/ansible
-
-ansible-playbook -i hosts playbook.yml
-
-cd /home/vagrant
+cd /home/vagrant/ansible && \
+ansible-playbook -i hosts playbook.yml && \
+cd /home/vagrant && \
 
 git clone https://github.com/bossjones/reproduce_travisci_docker_permissions_issue.git && \
 git clone https://github.com/KAMI911/ansible-role-sysctl-performance.git && \
