@@ -281,6 +281,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.forward_agent = true
   config.ssh.keep_alive  = 5
   config.ssh.insert_key = false
+  config.ssh.private_key_path = '~/.ssh/vagrant'
   # enable logging in via ssh with a password
   #config.ssh.username = "vagrant"
   #config.ssh.password = "vagrant"
