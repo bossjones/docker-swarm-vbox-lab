@@ -97,19 +97,6 @@ cat << EOF > /home/vagrant/ansible/playbook.yml
   roles:
     - role: ulimit
     - role: sysctl-performance
-  # tasks:
-  #   - name: Set Time Zone
-  #     hosts: Ubuntu
-  #     gather_facts: False
-  #   - name: Set timezone variables
-  #     copy: content='UTC\n'
-  #           dest=/etc/timezone
-  #           owner=root
-  #           group=root
-  #           mode=0644
-  #           backup=yes
-  #   - name: update timezone
-  #     command: dpkg-reconfigure --frontend noninteractive tzdata
 EOF
 
 cat << EOF > /home/vagrant/ansible/hosts
@@ -278,7 +265,7 @@ SHELL
 # config.vm.network "public_network", bridge: "#{INTERNET_INTERFACE}"
 
 servers = {
-  "ansible01" => { :ip => "172.30.5.60", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
+  "ansible01" => { :ip => "172.30.5.60", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
   "docker-engine01" => { :ip => "172.30.5.61", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
   "docker-engine02" => { :ip => "172.30.5.62", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
   "docker-engine03" => { :ip => "172.30.5.63", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
