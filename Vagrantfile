@@ -234,13 +234,14 @@ EOF
 cd /home/vagrant/ansible/roles && \
 git clone https://github.com/KAMI911/ansible-role-sysctl-performance sysctl-performance && \
 git clone https://github.com/picotrading/ansible-ulimit ulimit && \
+git clone https://github.com/dev-sec/ansible-os-hardening.git ansible-os-hardening && \
 cd /home/vagrant/ansible && \
 ansible-playbook -i hosts playbook.yml && \
 cd /home/vagrant && \
+sudo chown -R vagrant:vagrant /home/vagrant/ && \
 
 git clone https://github.com/bossjones/reproduce_travisci_docker_permissions_issue.git && \
-git clone https://github.com/KAMI911/ansible-role-sysctl-performance.git && \
-git clone https://github.com/dev-sec/ansible-os-hardening.git && \
+sudo chown -R vagrant:vagrant /home/vagrant/ && \
 echo "#!/usr/bin/env bash" > reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
 echo "set -x" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
 echo "_USER=vagrant" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
@@ -254,7 +255,9 @@ echo "DOCKER_VERSION=1.12.6-0~ubuntu-trusty" >> reproduce_travisci_docker_permis
 echo "DOCKER_PACKAGE_NAME=docker-engine" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
 echo "DEBIAN_FRONTEND=noninteractive" >> reproduce_travisci_docker_permissions_issue/scripts/default.sh && \
 sudo chmod +x ./reproduce_travisci_docker_permissions_issue/scripts/bootstrap_with_modified_uid_and_gid.sh && \
+sudo chown -R vagrant:vagrant /home/vagrant/ && \
 sudo ./reproduce_travisci_docker_permissions_issue/scripts/bootstrap_with_modified_uid_and_gid.sh
+sudo chown -R vagrant:vagrant /home/vagrant/
 SHELL
 
 $redhat_network = <<SHELL
@@ -266,10 +269,10 @@ SHELL
 
 servers = {
   "ansible01" => { :ip => "172.30.5.60", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
-  "docker-engine01" => { :ip => "172.30.5.61", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
-  "docker-engine02" => { :ip => "172.30.5.62", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
-  "docker-engine03" => { :ip => "172.30.5.63", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' },
-  "docker-engine04" => { :ip => "172.30.5.64", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => '' }
+  "docker-engine01" => { :ip => "172.30.5.61", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
+  "docker-engine02" => { :ip => "172.30.5.62", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
+  "docker-engine03" => { :ip => "172.30.5.63", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script },
+  "docker-engine04" => { :ip => "172.30.5.64", :bridge => "en0: Wi-Fi (AirPort)", :mem => DOCKER_MEM, :cpus => DOCKER_CPUS, :box => UBUNTU_BOX, :script => $docker_script }
 }
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -277,6 +280,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box_check_update = false
   config.ssh.forward_agent = true
   config.ssh.keep_alive  = 5
+  config.ssh.insert_key = false
   # enable logging in via ssh with a password
   #config.ssh.username = "vagrant"
   #config.ssh.password = "vagrant"
