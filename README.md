@@ -274,3 +274,9 @@ To github.com:bossjones/docker-swarm-vbox-lab.git
  |2.2.3|   Malcolms-MBP-3 in ~/dev/bossjones/docker-swarm-vbox-lab
 ± |master ✓| →
 ```
+
+# Dashboard for Grafana
+
+Borrowed from https://github.com/botleg/swarm-monitoring !
+
+Source: https://github.com/botleg/swarm-monitoring/blob/master/dashboard.json
