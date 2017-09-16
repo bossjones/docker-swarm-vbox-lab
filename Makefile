@@ -14,11 +14,17 @@ DC = ./bin/docker-compose-x86_64
 bootstrap-dvm:
 	@bash ./scripts/bootstrap-dvm.sh
 
+bootstrap-swarm-local:
+	$(DM) create -d virtualbox local
+	# eval $(./bin/docker-machine-x86_64 env local)
+
+# NOTE: Based on
+# http://perica.zivkovic.nl/blog/setup-docker-swarm-with-docker-machine-do/
 bootstrap-swarm:
 	$(DM) create -d virtualbox swarm-manager
 	$(DM) create -d virtualbox node-01
 	$(DM) create -d virtualbox node-02
-	# $(DM) create -d virtualbox node-03
+	$(DM) create -d virtualbox node-03
 	MANAGER_IP=$(./bin/docker-machine-x86_64 ip swarm-manager)
 	@echo ${MANAGER_IP}
 	# initalize swarm manager
@@ -27,8 +33,10 @@ bootstrap-swarm:
 	@echo ${WORKER_TOKEN}
 	$(DM) ssh node-01 docker swarm join --token ${WORKER_TOKEN} ${MANAGER_IP}:2377
 	$(DM) ssh node-02 docker swarm join --token ${WORKER_TOKEN} ${MANAGER_IP}:2377
-	# $(DM) ssh node-03 docker swarm join --token ${WORKER_TOKEN} ${MANAGER_IP}:2377
+	$(DM) ssh node-03 docker swarm join --token ${WORKER_TOKEN} ${MANAGER_IP}:2377
 
+swarm-lab-from-scratch:
+	@bash ./scripts/swarm-lab-from-scratch.sh
 
 create-dm-local:
 	./bin/docker-machine-x86_64 create -d virtualbox local
@@ -92,11 +100,20 @@ broken-install-portainer:
     portainer/portainer \
 	-H tcp://${MANAGER_IP}:2376
 
+	# @bash ./scripts/docker-start-portainer.sh
 install-portainer:
-	$(MKDIR) -p data
-	@bash ./scripts/docker-start-portainer.sh
+	$(MKDIR) -p data; \
+	@docker service create \
+    --detach=true \
+    --name portainer \
+    --publish 9000:9000 \
+    --constraint 'node.role == manager' \
+    --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+    --mount type=bind,src=$$PWD/data,dst=/data \
+    portainer/portainer \
+    -H unix:///var/run/docker.sock
 
-install-visualizer:
+install-viz:
 	@docker service create \
 	--detach=true \
 	--publish=9090:8080/tcp \
@@ -106,6 +123,30 @@ install-visualizer:
 	--constraint=node.role==manager \
 	--mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
 	dockersamples/visualizer
+
+install-node-exporter-prometheus:
+	docker run -d -p 9100:9100 \
+	-v "/proc:/host/proc:ro" \
+	-v "/sys:/host/sys:ro" \
+	-v "/:/rootfs:ro" \
+	--net="host" \
+	quay.io/prometheus/node-exporter \
+		--collector.procfs /host/proc \
+		--collector.sysfs /host/sys \
+		--collector.filesystem.ignored-mount-points "^/(sys|proc|dev|host|etc)($|/)"
+
+# source: https://medium.com/@DazWilkin/docker-swarm-and-prometheus-fd19462f1bf8
+install-node-exporter-nodez:
+	docker service create \
+	--name=nodez \
+	--publish=9101:9100 \
+	--mount=type=bind,source=/proc,target=/host/proc,readonly \
+	--mount=type=bind,source=/sys,target=/host/sys,readonly \
+	--mount=type=bind,source=/,target=/rootfs,readonly \
+	--mode=global \
+	dazwilkin/zero-exporter:1706202032 \
+		-collector.sysfs /host/sys \
+		-collector.filesystem.ignored-mount-points "^/(sys|proc|dev|host|etc)($|/)"
 
 ./bin/docker-compose-x86_64:
 	curl -L https://github.com/docker/compose/releases/download/$(DOCKER_COMPOSE_VERSION)/docker-compose-`uname -s`-`uname -m` > ./bin/docker-compose-x86_64 && \
@@ -137,6 +178,7 @@ perf-es:
 	$(DM) ssh swarm-manager sudo sysctl -w vm.max_map_count=262144
 	$(DM) ssh node-01 sudo sysctl -w vm.max_map_count=262144
 	$(DM) ssh node-02 sudo sysctl -w vm.max_map_count=262144
+	$(DM) ssh node-03 sudo sysctl -w vm.max_map_count=262144
 
 # This will start the services in the stack which is named monitor.
 # This might take some time the first time as the nodes have
@@ -185,6 +227,9 @@ open-nginx:
 
 open-portainer:
 	@bash ./scripts/open-portainer.sh
+
+open-viz:
+	@bash ./scripts/open-visualizer.sh
 
 stop-logging:
 	docker stack rm elk
