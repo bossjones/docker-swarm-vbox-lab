@@ -14,6 +14,22 @@ DC = ./bin/docker-compose-x86_64
 bootstrap-dvm:
 	@bash ./scripts/bootstrap-dvm.sh
 
+bootstrap-swarm:
+	$(DM) create -d virtualbox swarm-manager
+	$(DM) create -d virtualbox node-01
+	$(DM) create -d virtualbox node-02
+	# $(DM) create -d virtualbox node-03
+	MANAGER_IP=$(./bin/docker-machine-x86_64 ip swarm-manager)
+	@echo ${MANAGER_IP}
+	# initalize swarm manager
+	$(DM) ssh swarm-manager docker swarm init --advertise-addr ${MANAGER_IP}
+	WORKER_TOKEN=$(./bin/docker-machine-x86_64 ssh swarm-manager docker swarm join-token --quiet worker)
+	@echo ${WORKER_TOKEN}
+	$(DM) ssh node-01 docker swarm join --token ${WORKER_TOKEN} ${MANAGER_IP}:2377
+	$(DM) ssh node-02 docker swarm join --token ${WORKER_TOKEN} ${MANAGER_IP}:2377
+	# $(DM) ssh node-03 docker swarm join --token ${WORKER_TOKEN} ${MANAGER_IP}:2377
+
+
 create-dm-local:
 	./bin/docker-machine-x86_64 create -d virtualbox local
 
@@ -54,6 +70,26 @@ install-dm-completions:
 	$(MKDIR) -p .bash_completion.d
 	@bash ./scripts/install-dm-completions.sh
 
+# source: https://portainer.readthedocs.io/en/stable/deployment.html
+# docker run -d -p 9000:9000 portainer/portainer -H tcp://<SWARM_MANAGER_IP>:2375
+install-portainer:
+	MANAGER_IP=$(./bin/docker-machine-x86_64 ip swarm-manager)
+	@docker pull portainer/portainer; \
+	# @docker service create \
+	# -d \
+	# --name portainer \
+	# --publish 9000:9000 \
+	# portainer/portainer \
+	# -H tcp://${MANAGER_IP}:2376
+	@docker service create \
+	-d \
+    --name portainer \
+    --publish 9000:9000 \
+    --constraint 'node.role == manager' \
+    --mount type=bind,src=//var/run/docker.sock,dst=/var/run/docker.sock \
+    portainer/portainer \
+	-H tcp://${MANAGER_IP}:2376
+
 ./bin/docker-compose-x86_64:
 	curl -L https://github.com/docker/compose/releases/download/$(DOCKER_COMPOSE_VERSION)/docker-compose-`uname -s`-`uname -m` > ./bin/docker-compose-x86_64 && \
 	chmod + ./bin/docker-compose-x86_64
@@ -65,6 +101,9 @@ install-dm-completions:
 	./bin/docker-machine-x86_64 version
 
 bootstrap-docker-toolbox: ./bin/docker-compose-x86_64 ./bin/docker-machine-x86_64
+
+list:
+	@$(MAKE) -qp | awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:([^=]|$$)/ {split($$1,A,/ /);for(i in A)print A[i]}' | sort
 
 test:
 	@docker --version
