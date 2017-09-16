@@ -1,10 +1,14 @@
 .PHONY: test clean
 
+# https://stackoverflow.com/questions/7897549/make-ignores-my-python-bash-alias
+
 DOCKER_VERSION := 17.05.0-ce
 DOCKER_MACHINE_VERSION := v0.12.2
 DOCKER_COMPOSE_VERSION := 1.16.1
 
 MKDIR = mkdir
+DM = ./bin/docker-machine-x86_64
+DC = ./bin/docker-compose-x86_64
 
 # docker version manager ( this doesnt work I think )
 bootstrap-dvm:
@@ -12,6 +16,27 @@ bootstrap-dvm:
 
 create-dm-local:
 	./bin/docker-machine-x86_64 create -d virtualbox local
+
+echo-discotoken:
+	@echo "${discotoken}"
+
+create-dm-swarm-manager:
+	./bin/docker-machine-x86_64 create \
+	-d virtualbox \
+	--swarm \
+	--swarm-master \
+	--swarm-discovery token://${discotoken} \
+	swarm-manager
+
+create-dm-node-01:
+	./bin/docker-machine-x86_64 create \
+	-d virtualbox \
+	--swarm \
+	--swarm-discovery token://${discotoken} \
+	node-01
+
+dm-ls:
+	$(DM) ls
 
 # source: https://unix.stackexchange.com/questions/269912/send-command-to-the-shell-via-makefile
 env-dm-local:
