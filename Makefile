@@ -72,7 +72,7 @@ install-dm-completions:
 
 # source: https://portainer.readthedocs.io/en/stable/deployment.html
 # docker run -d -p 9000:9000 portainer/portainer -H tcp://<SWARM_MANAGER_IP>:2375
-install-portainer:
+broken-install-portainer:
 	MANAGER_IP=$(./bin/docker-machine-x86_64 ip swarm-manager)
 	@docker pull portainer/portainer; \
 	# @docker service create \
@@ -91,6 +91,21 @@ install-portainer:
 	--mount type=bind,src=$$PWD/data,dst=/data \
     portainer/portainer \
 	-H tcp://${MANAGER_IP}:2376
+
+install-portainer:
+	$(MKDIR) -p data
+	@bash ./scripts/docker-start-portainer.sh
+
+install-visualizer:
+	@docker service create \
+	--detach=true \
+	--publish=9090:8080/tcp \
+	--limit-cpu 0.5 \
+	--name=viz \
+	--env PORT=9090 \
+	--constraint=node.role==manager \
+	--mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+	dockersamples/visualizer
 
 ./bin/docker-compose-x86_64:
 	curl -L https://github.com/docker/compose/releases/download/$(DOCKER_COMPOSE_VERSION)/docker-compose-`uname -s`-`uname -m` > ./bin/docker-compose-x86_64 && \
@@ -168,6 +183,9 @@ open-logstash:
 open-nginx:
 	@bash ./scripts/open-nginx.sh
 
+open-portainer:
+	@bash ./scripts/open-portainer.sh
+
 stop-logging:
 	docker stack rm elk
 
@@ -176,3 +194,12 @@ stop-monitoring:
 
 stop-nginx:
 	docker stack rm nginx
+
+stop-portainer:
+	@docker service rm portainer
+
+stop-viz:
+	@docker service rm viz
+
+docker-service-ls:
+	@docker service ls
