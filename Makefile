@@ -14,11 +14,7 @@ create-dm-local:
 	./bin/docker-machine-x86_64 create -d virtualbox local
 
 env-dm-local:
-	./bin/docker-machine-x86_64 env local
-	echo
-	eval "$(./docker-machine-Linux-x86_64 env local)"
-	echo
-	env | grep -i docker
+	@bash ./scripts/env-dm-local.sh
 
 dvm-use:
 	dvm use $(DOCKER_VERSION)
