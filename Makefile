@@ -13,8 +13,10 @@ bootstrap-dvm:
 create-dm-local:
 	./bin/docker-machine-x86_64 create -d virtualbox local
 
+# source: https://unix.stackexchange.com/questions/269912/send-command-to-the-shell-via-makefile
 env-dm-local:
-	@bash ./scripts/env-dm-local.sh
+	echo $$(./bin/docker-machine-x86_64 env local) > ./dm-local-env
+	@echo "Run this command to configure your shell: # source ./dm-local-env"
 
 dvm-use:
 	dvm use $(DOCKER_VERSION)
