@@ -165,6 +165,9 @@ open-grafana:
 open-logstash:
 	@bash ./scripts/open-logstash.sh
 
+open-nginx:
+	@bash ./scripts/open-nginx.sh
+
 stop-logging:
 	docker stack rm elk
 
