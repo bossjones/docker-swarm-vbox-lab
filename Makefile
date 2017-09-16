@@ -81,12 +81,14 @@ install-portainer:
 	# --publish 9000:9000 \
 	# portainer/portainer \
 	# -H tcp://${MANAGER_IP}:2376
+	$(MKDIR) -p data; \
 	@docker service create \
 	-d \
     --name portainer \
     --publish 9000:9000 \
     --constraint 'node.role == manager' \
     --mount type=bind,src=//var/run/docker.sock,dst=/var/run/docker.sock \
+	--mount type=bind,src=$$PWD/data,dst=/data \
     portainer/portainer \
 	-H tcp://${MANAGER_IP}:2376
 
