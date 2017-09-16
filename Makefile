@@ -118,3 +118,11 @@ perf:
 	$(DM) ssh swarm-manager sudo sysctl -w vm.max_map_count=262144
 	$(DM) ssh node-01 sudo sysctl -w vm.max_map_count=262144
 	$(DM) ssh node-02 sudo sysctl -w vm.max_map_count=262144
+
+# This will start the services in the stack which is named monitor.
+# This might take some time the first time as the nodes have
+# to download the images.
+# Also, you need to create the database named cadvisor in InfluxDB to store the metrics.
+deploy-monitoring:
+	@docker stack deploy -c docker-compose.monitoring.yml monitor
+	@bash ./scripts/create-influx-db.sh
