@@ -113,3 +113,8 @@ test:
 clean:
 	$(RM) ./bin/docker-compose-x86_64
 	$(RM) ./bin/docker-machine-x86_64
+
+perf:
+	$(DM) ssh swarm-manager sudo sysctl -w vm.max_map_count=262144
+	$(DM) ssh node-01 sudo sysctl -w vm.max_map_count=262144
+	$(DM) ssh node-02 sudo sysctl -w vm.max_map_count=262144
