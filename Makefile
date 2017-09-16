@@ -126,3 +126,10 @@ perf:
 deploy-monitoring:
 	@docker stack deploy -c docker-compose.monitoring.yml monitor
 	@bash ./scripts/create-influx-db.sh
+
+# NOTE: alternative docker stack ps monitor
+list-services-swarm-monitoring:
+	@docker stack services monitor
+
+open-grafana:
+	@bash ./scripts/open-grafana.sh
