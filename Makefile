@@ -151,3 +151,6 @@ ps-logging-containers:
 
 open-grafana:
 	@bash ./scripts/open-grafana.sh
+
+open-logstash:
+	@bash ./scripts/open-logstash.sh
