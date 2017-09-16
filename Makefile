@@ -186,6 +186,7 @@ perf-es:
 # Also, you need to create the database named cadvisor in InfluxDB to store the metrics.
 deploy-monitoring:
 	@docker stack deploy -c docker-compose.monitoring.yml monitor
+	sleep 60
 	@bash ./scripts/create-influx-db.sh
 
 # This will start the services in the stack named elk
