@@ -135,6 +135,9 @@ deploy-monitoring:
 deploy-logging:
 	@docker stack deploy -c docker-compose.logging.yml elk
 
+deploy-nginx:
+	@docker stack deploy -c docker-compose.nginx.yml nginx
+
 # NOTE: alternative docker stack ps monitor
 list-services-swarm-monitoring:
 	@docker stack services monitor
@@ -143,8 +146,15 @@ list-services-swarm-monitoring:
 list-services-swarm-logging:
 	@docker stack services elk
 
+# NOTE: alternative docker stack ps monitor
+list-services-swarm-nginx:
+	@docker stack services nginx
+
 ps-monitoring-containers:
 	@docker stack ps monitor
+
+ps-nginx-containers:
+	@docker stack ps nginx
 
 ps-logging-containers:
 	@docker stack ps elk
@@ -160,3 +170,6 @@ stop-logging:
 
 stop-monitoring:
 	docker stack rm monitor
+
+stop-nginx:
+	docker stack rm nginx
