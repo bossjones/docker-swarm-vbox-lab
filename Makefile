@@ -154,3 +154,9 @@ open-grafana:
 
 open-logstash:
 	@bash ./scripts/open-logstash.sh
+
+stop-logging:
+	docker stack rm elk
+
+stop-monitoring:
+	docker stack rm monitor

@@ -35,6 +35,8 @@ services:
     image: bekt/logspout-logstash
     environment:
       ROUTE_URIS: 'logstash://logstash:5000'
+    ports:
+      - '8000:80'
     # We also need to create a volume for the Docker socket,
     # /var/run/docker.sock.
     # This lets the container to attach to the docker daemon
