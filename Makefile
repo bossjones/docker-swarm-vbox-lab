@@ -117,6 +117,12 @@ clean:
 perf:
 	@bash ./scripts/perf.sh
 
+# Needed for elasticsearch
+perf-es:
+	$(DM) ssh swarm-manager sudo sysctl -w vm.max_map_count=262144
+	$(DM) ssh node-01 sudo sysctl -w vm.max_map_count=262144
+	$(DM) ssh node-02 sudo sysctl -w vm.max_map_count=262144
+
 # This will start the services in the stack which is named monitor.
 # This might take some time the first time as the nodes have
 # to download the images.
