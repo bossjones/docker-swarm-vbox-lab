@@ -64,3 +64,7 @@ Gemfile.lock
 scarlett_ansible.box
 *.retry
 *.box
+
+
+bin/docker-compose-x86_64
+bin/docker-machine-x86_64
