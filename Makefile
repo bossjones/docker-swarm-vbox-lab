@@ -115,9 +115,7 @@ clean:
 	$(RM) ./bin/docker-machine-x86_64
 
 perf:
-	$(DM) ssh swarm-manager sudo sysctl -w vm.max_map_count=262144
-	$(DM) ssh node-01 sudo sysctl -w vm.max_map_count=262144
-	$(DM) ssh node-02 sudo sysctl -w vm.max_map_count=262144
+	@bash ./scripts/perf.sh
 
 # This will start the services in the stack which is named monitor.
 # This might take some time the first time as the nodes have
@@ -127,9 +125,23 @@ deploy-monitoring:
 	@docker stack deploy -c docker-compose.monitoring.yml monitor
 	@bash ./scripts/create-influx-db.sh
 
+# This will start the services in the stack named elk
+deploy-logging:
+	@docker stack deploy -c docker-compose.logging.yml elk
+
 # NOTE: alternative docker stack ps monitor
 list-services-swarm-monitoring:
 	@docker stack services monitor
+
+# NOTE: alternative docker stack ps monitor
+list-services-swarm-logging:
+	@docker stack services elk
+
+ps-monitoring-containers:
+	@docker stack ps monitor
+
+ps-logging-containers:
+	@docker stack ps elk
 
 open-grafana:
 	@bash ./scripts/open-grafana.sh
