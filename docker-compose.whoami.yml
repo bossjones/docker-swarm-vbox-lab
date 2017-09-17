@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  whoami:
+    image: emilevauge/whoami
+    ports:
+      - "7001:80"
+    deploy:
+      mode: global

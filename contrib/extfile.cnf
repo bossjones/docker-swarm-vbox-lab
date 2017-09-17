@@ -1,0 +1,10 @@
+[ v3_req ]
+subjectAltName = @alt_names
+
+# Extensions to add to a certificate request
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation
+
+[alt_names]
+IP.1 = REPLACE_WITH_DOCKER_HOST_IP
+DNS.1 = tonydark.lan

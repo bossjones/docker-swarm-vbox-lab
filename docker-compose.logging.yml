@@ -1,10 +1,19 @@
 version: '3'
 
 # source: https://github.com/botleg/swarm-logging/blob/master/docker-stack.yml
+# source: https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.logging.yml
+
+networks:
+  logging:
+  monitoring_monitoring:
+    external: true
 
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:5.3.2
+    networks:
+      - logging
+      - monitoring_monitoring
     environment:
       ES_JAVA_OPTS: '-Xms256m -Xmx256m'
       # NOTE: https://www.elastic.co/products/x-pack
@@ -24,6 +33,8 @@ services:
 
   logstash:
     image: docker.elastic.co/logstash/logstash:5.3.2
+    networks:
+      - logging
     volumes:
       - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     depends_on:
@@ -33,8 +44,11 @@ services:
 
   logspout:
     image: bekt/logspout-logstash
+    networks:
+      - logging
     environment:
       ROUTE_URIS: 'logstash://logstash:5000'
+      DOCKER_LABELS: "true"
     ports:
       - 0.0.0.0:8000:80
     # We also need to create a volume for the Docker socket,
@@ -50,9 +64,19 @@ services:
       restart_policy:
         condition: on-failure
         delay: 60s
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+        reservations:
+          cpus: '0.25'
+          memory: 32M
+
 
   kibana:
     image: docker.elastic.co/kibana/kibana:5.3.2
+    networks:
+      - logging
     # The router mesh feature will then let us access
     # kibana from port 8088 of any host in the swarm.
     ports:

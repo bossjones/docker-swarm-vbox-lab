@@ -2,6 +2,18 @@ version: '3'
 
 # source: https://botleg.com/stories/monitoring-docker-swarm-with-cadvisor-influxdb-and-grafana/
 
+volumes:
+  influx:
+    driver: local
+  grafana:
+    driver: local
+  prometheus_data:
+    driver: local
+
+# networks:
+#   front-tier:
+#   back-tier:
+
 services:
   influx:
     image: influxdb
@@ -16,16 +28,26 @@ services:
   grafana:
     image: grafana/grafana
     ports:
-      - 0.0.0.0:80:3000
+      - 3000:3000
+    env_file:
+      - config.monitoring
     volumes:
       - grafana:/var/lib/grafana
     depends_on:
       - influx
+      # - prometheus
     deploy:
       replicas: 1
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 64M
+        reservations:
+          cpus: '0.50'
+          memory: 32M
 
   cadvisor:
     image: google/cadvisor
@@ -38,6 +60,8 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+    expose:
+      - 8080
     depends_on:
       - influx
     # NOTE: We use the mode global for deploy in cadvisor service.
@@ -45,9 +69,224 @@ services:
     # service will be run in each node of the swarm.
     deploy:
       mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      # source: https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.yml
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 128M
+        reservations:
+          cpus: '0.10'
+          memory: 64M
 
-volumes:
-  influx:
-    driver: local
-  grafana:
-    driver: local
+  node-exporter:
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: '-collector.procfs=/host/proc -collector.sysfs=/host/sys -collector.filesystem.ignored-mount-points="^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)" collector.filesystem.ignored-fs-types="^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"'
+    expose:
+      - 9100
+    hostname: "{{.Node.ID}}"
+    environment:
+      HOST_HOSTNAME: /etc/host_hostname
+    deploy:
+      # source: https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.yml
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 32M
+        reservations:
+          cpus: '0.10'
+          memory: 16M
+
+  alertmanager:
+    image: prom/alertmanager
+    ports:
+      - 9193:9193
+    volumes:
+      - ./alertmanager/:/etc/alertmanager/
+    depends_on:
+      - configuration_manager
+    command:
+      - '-config.file=/etc/alertmanager/config.yml'
+      - '-storage.path=/alertmanager'
+    # source: https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/#replicated-and-global-services
+    # There are two types of service deployments, replicated and global.
+    # For a replicated service, you specify the number of identical tasks you want to run.
+    # For example, you decide to deploy an HTTP service with three replicas, each serving the same content.
+    deploy:
+      replicas: 1
+      restart_policy:
+          condition: on-failure
+          delay: 60s
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.01'
+          memory: 32M
+        reservations:
+          cpus: '0.01'
+          memory: 16M
+
+# docker run -d
+#     --restart=always
+#     -v "/etc/ssl/certs:/etc/ssl/certs:ro"
+#     -v "/etc/ssl/private:/etc/ssl/private:ro"
+#     -v "/usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro"
+#     -e SMTP_AUTH_USERNAME=username
+#     -e SMTP_AUTH_PASSWORD=password
+#     --name alertmanager
+#     prom/alertmanager
+#     -config.file=/alertmanager.yml
+
+# global:
+#   smtp_from: 'alertmanager@tonydark.lan'
+#   smtp_smarthost: '172.17.0.1:587'
+
+  # Get metrics about the actual docker daemon
+  docker-exporter:
+    image: basi/socat:${DOCKER_EXPORTER_VERSION:-v0.1.0}
+    deploy:
+      mode: global
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 6M
+        reservations:
+          cpus: '0.05'
+          memory: 4M
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '-config.file=/etc/prometheus/prometheus.yml'
+      - '-storage.local.path=/prometheus'
+      - '-alertmanager.url=http://alertmanager:9193'
+      - '-web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '-web.console.templates=/usr/share/prometheus/consoles'
+    expose:
+      - 9190
+    ports:
+      - 9190:9190
+    depends_on:
+      - cadvisor
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1024M
+        reservations:
+          cpus: '0.50'
+          memory: 128M
+
+  # source: https://github.com/danguita/prometheus-monitoring-stack/blob/master/docker-compose.yml
+  configuration_manager:
+    image: busybox
+    env_file:
+    - config.prometheus
+    volumes:
+      - ./config:/config
+    entrypoint:
+      - /bin/bash
+      - -c
+    command:
+      - sed "s,ALERT_SLACK_USERNAME,${ALERT_SLACK_USERNAME},g;
+             s,ALERT_SLACK_CHANNEL,${ALERT_SLACK_CHANNEL},g;
+             s,ALERT_SLACK_INCOMING_WEBHOOK_URL,${ALERT_SLACK_INCOMING_WEBHOOK_URL},g"
+             /config/alertmanager.template.yml > /config/alertmanager.yml
+
+  portainer:
+    image: portainer/portainer
+    # command: -H tcp://$MANAGER_IP:2375
+    ports:
+      - 9000:9000
+    # networks:
+    #   - proxy
+    stdin_open: true
+    tty: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      placement:
+        constraints:
+          - node.role == manager
+      # labels:
+      #   - com.df.notify=true
+      #   - com.df.distribute=true
+      #   - com.df.port=9000
+      #   - com.df.servicePath=/#/auth
+      #   - "traefik.port=9000"
+      #   - "traefik.frontend.rule=Host:mydomain.lan;PathPrefixStrip:/portainer"
+      #   - "traefik.docker.network=proxy"
+    # depends_on:
+    #   - proxy
+
+# ------------------------------------------------------------------------------------
+
+  # source: https://github.com/ecozoic/mern-starter/blob/20ddcc4453fecf80cac3e7b703d1f0382dcba43a/docker-compose.yml
+  # portainer:
+  #   image: portainer/portainer
+  #   container_name: portainer
+  #   command: --no-auth
+  #   ports:
+  #     - 9000:9000
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - data_portainer:/data
+
+
+# ------------------------------------------------------------------------------------
+
+# source: https://github.com/btyh17mxy/portainerNodeMonitor/blob/d7b5799c352f71cc97cae0047768868b494d17b7/docker-compose-example.yml
+# version: "3"
+# services:
+
+#   portainer:
+#     image: portainer/portainer
+#     ports:
+#       - "9000:9000"
+#     stop_grace_period: 1m30s
+#     volumes:
+#       - endpoints:/etc/endpoints
+#       - /var/run/docker.sock:/var/run/docker.sock
+#     command: ['--external-endpoints', '/etc/endpoints/endpoints.json']
+#     depends_on:
+#       - node-monitor
+#     deploy:
+#       placement:
+#         constraints: [node.role == manager]
+#   node-monitor:
+#     image: btyh17mxy/portainernodemonitor
+#     volumes:
+#       - endpoints:/etc/endpoints
+#       - /var/run/docker.sock:/var/run/docker.sock
+#     deploy:
+#       placement:
+#         constraints: [node.role == manager]
+# volumes:
+#   endpoints:

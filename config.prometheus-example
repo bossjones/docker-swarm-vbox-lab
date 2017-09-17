@@ -1,0 +1,6 @@
+GF_SECURITY_ADMIN_PASSWORD=secret                                 # Password for the "admin" user in Grafana
+EMAIL=mark@facebook.com                                           # Email address to register with `letsencrypt`
+DOMAIN=my-little-monitor.facebook.com                             # Domain name to be used by the Nginx proxy
+ALERT_SLACK_USERNAME=Prometheus                                   # Slack username in Prometheus server alerts
+ALERT_SLACK_CHANNEL="#notifications"                              # Slack channel for Prometheus server alerts
+ALERT_SLACK_INCOMING_WEBHOOK_URL=https://hooks.slack.com/whatever # Slack's incoming webhook URL to deliver Prometheus server alerts

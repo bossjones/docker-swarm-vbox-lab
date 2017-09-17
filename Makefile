@@ -131,9 +131,9 @@ install-node-exporter-prometheus:
 	-v "/:/rootfs:ro" \
 	--net="host" \
 	quay.io/prometheus/node-exporter \
-		--collector.procfs /host/proc \
-		--collector.sysfs /host/sys \
-		--collector.filesystem.ignored-mount-points "^/(sys|proc|dev|host|etc)($|/)"
+	--collector.procfs /host/proc \
+	--collector.sysfs /host/sys \
+	--collector.filesystem.ignored-mount-points "^/(sys|proc|dev|host|etc)($|/)"
 
 # source: https://medium.com/@DazWilkin/docker-swarm-and-prometheus-fd19462f1bf8
 install-node-exporter-nodez:
@@ -145,8 +145,8 @@ install-node-exporter-nodez:
 	--mount=type=bind,source=/,target=/rootfs,readonly \
 	--mode=global \
 	dazwilkin/zero-exporter:1706202032 \
-		-collector.sysfs /host/sys \
-		-collector.filesystem.ignored-mount-points "^/(sys|proc|dev|host|etc)($|/)"
+	-collector.sysfs /host/sys \
+	-collector.filesystem.ignored-mount-points "^/(sys|proc|dev|host|etc)($|/)"
 
 ./bin/docker-compose-x86_64:
 	curl -L https://github.com/docker/compose/releases/download/$(DOCKER_COMPOSE_VERSION)/docker-compose-`uname -s`-`uname -m` > ./bin/docker-compose-x86_64 && \
@@ -196,6 +196,12 @@ deploy-logging:
 deploy-nginx:
 	@docker stack deploy -c docker-compose.nginx.yml nginx
 
+deploy-whoami:
+	@docker stack deploy -c docker-compose.whoami.yml whoami
+
+deploy-portainer:
+	@docker stack deploy -c docker-compose.portainer.yml gui
+
 # NOTE: alternative docker stack ps monitor
 list-services-swarm-monitoring:
 	@docker stack services monitor
@@ -231,6 +237,9 @@ open-portainer:
 
 open-viz:
 	@bash ./scripts/open-visualizer.sh
+
+open-prometheus:
+	@bash ./scripts/open-prometheus.sh
 
 stop-logging:
 	docker stack rm elk

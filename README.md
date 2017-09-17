@@ -7,6 +7,7 @@ lab to try out using docker swarm on virtualized environment using vagrant
 - https://unix.stackexchange.com/questions/269912/send-command-to-the-shell-via-makefile
 - https://docs.docker.com/get-started/part3/
 - https://stackoverflow.com/questions/7897549/make-ignores-my-python-bash-alias
+- https://botleg.com/stories/monitoring-docker-swarm-with-cadvisor-influxdb-and-grafana/
 
 #
 
@@ -280,3 +281,19 @@ To github.com:bossjones/docker-swarm-vbox-lab.git
 Borrowed from https://github.com/botleg/swarm-monitoring !
 
 Source: https://github.com/botleg/swarm-monitoring/blob/master/dashboard.json
+
+# Prometheus
+
+Borrowed from https://github.com/vegasbrianc/prometheus
+
+# SSL configuration example
+
+- https://github.com/danguita/prometheus-monitoring-stack
+
+# SMTP server for alertmanager
+
+- https://hub.docker.com/r/marvambass/versatile-postfix/
+
+# networking external example
+
+- https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.logging.yml
