@@ -124,6 +124,12 @@ install-viz:
 	--mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
 	dockersamples/visualizer
 
+install-seagull:
+	@docker run -d \
+	-p 10086:10086 \
+	-v /var/run/docker.sock:/var/run/docker.sock \
+	tobegit3hub/seagull
+
 install-node-exporter-prometheus:
 	docker run -d -p 9100:9100 \
 	-v "/proc:/host/proc:ro" \
@@ -200,7 +206,16 @@ deploy-whoami:
 	@docker stack deploy -c docker-compose.whoami.yml whoami
 
 deploy-portainer:
-	@docker stack deploy -c docker-compose.portainer.yml gui
+	# @docker stack deploy -c docker-compose.portainer.yml portainer
+	docker run -d \
+		--name portainer \
+		-p 9000:9000 \
+		--privileged \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		portainer/portainer
+
+deploy-swarmpit:
+	@docker stack deploy -c docker-compose.swarmpit.yml swarmpit
 
 # NOTE: alternative docker stack ps monitor
 list-services-swarm-monitoring:
@@ -241,6 +256,9 @@ open-viz:
 open-prometheus:
 	@bash ./scripts/open-prometheus.sh
 
+open-seagull:
+	@bash ./scripts/open-seagull.sh
+
 stop-logging:
 	docker stack rm elk
 
@@ -251,10 +269,13 @@ stop-nginx:
 	docker stack rm nginx
 
 stop-portainer:
-	@docker service rm portainer
+	docker stop portainer
 
 stop-viz:
 	@docker service rm viz
+
+stop-swarmpit:
+	@docker service rm swarmpit
 
 docker-service-ls:
 	@docker service ls

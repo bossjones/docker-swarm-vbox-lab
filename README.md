@@ -8,6 +8,7 @@ lab to try out using docker swarm on virtualized environment using vagrant
 - https://docs.docker.com/get-started/part3/
 - https://stackoverflow.com/questions/7897549/make-ignores-my-python-bash-alias
 - https://botleg.com/stories/monitoring-docker-swarm-with-cadvisor-influxdb-and-grafana/
+- https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.logging.yml
 
 #
 

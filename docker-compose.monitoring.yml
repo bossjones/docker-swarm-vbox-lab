@@ -215,26 +215,27 @@ services:
              s,ALERT_SLACK_INCOMING_WEBHOOK_URL,${ALERT_SLACK_INCOMING_WEBHOOK_URL},g"
              /config/alertmanager.template.yml > /config/alertmanager.yml
 
-  portainer:
-    image: portainer/portainer
-    # command: -H tcp://$MANAGER_IP:2375
-    ports:
-      - 9000:9000
-    # networks:
-    #   - proxy
-    stdin_open: true
-    tty: true
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./data:/data
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-        delay: 60s
-      placement:
-        constraints:
-          - node.role == manager
+  # DISABLED #portainer:
+  # DISABLED #  image: portainer/portainer
+  # DISABLED #  privileged: true
+  # DISABLED #  # command: -H tcp://$MANAGER_IP:2375
+  # DISABLED #  ports:
+  # DISABLED #    - 9000:9000
+  # DISABLED #  # networks:
+  # DISABLED #  #   - proxy
+  # DISABLED #  stdin_open: true
+  # DISABLED #  tty: true
+  # DISABLED #  volumes:
+  # DISABLED #    - /var/run/docker.sock:/var/run/docker.sock
+  # DISABLED #    - "$PWD/data:/data"
+  # DISABLED #  deploy:
+  # DISABLED #    replicas: 1
+  # DISABLED #    restart_policy:
+  # DISABLED #      condition: on-failure
+  # DISABLED #      delay: 60s
+  # DISABLED #    placement:
+  # DISABLED #      constraints:
+  # DISABLED #        - node.role == manager
       # labels:
       #   - com.df.notify=true
       #   - com.df.distribute=true
@@ -290,3 +291,39 @@ services:
 #         constraints: [node.role == manager]
 # volumes:
 #   endpoints:
+
+
+# --------------------------------------------------------------------------------
+
+# source: https://github.com/vegasbrianc/docker-traefik-prometheus/blob/master/docker-compose.yml
+
+#   traefik:
+#     image: traefik
+#     command: --web --web.metrics.prometheus --web.metrics.prometheus.buckets="0.1,0.3,1.2,5.0" --docker --docker.domain=docker.localhost --logLevel=DEBUG
+#     networks:
+#       - prometheus
+#     ports:
+#       - "80:80"
+#       - "8080:8080"
+#     volumes:
+#       - /var/run/docker.sock:/var/run/docker.sock
+
+# networks:
+#  prometheus:
+#    external:
+#      name: dockerprometheus_back-tier
+
+# # source: https://github.com/danguita/prometheus-monitoring-stack/blob/master/docker-compose.yml#L4
+  # frontend:
+  #   image: smashwilson/lets-nginx
+  #   env_file: .env
+  #   environment:
+  #     - UPSTREAM=grafana:3000
+  #   volumes:
+  #     - letsencrypt:/etc/letsencrypt
+  #     - letsencrypt_backups:/var/lib/letsencrypt
+  #     - dhparam_cache:/cache
+  #   ports:
+  #     - "443:443"
+  #   links:
+  #     - grafana

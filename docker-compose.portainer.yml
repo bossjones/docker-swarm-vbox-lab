@@ -12,6 +12,10 @@ version: '3'
 # 	--mount type=bind,src=$$PWD/data,dst=/data \
 #     portainer/portainer
 
+# source: https://medium.com/technoetics/creating-simple-docker-swarm-management-ui-using-portainer-and-reactjs-bd32afbdb1b9
+# TODO: Try Me
+# docker run -d -p 9000:9000 --privileged -v /var/run/docker.sock:/var/run/docker.sock portainer/portainer
+
 services:
   portainer:
     image: portainer/portainer
@@ -20,9 +24,13 @@ services:
       - 9000:9000
     # networks:
     #   - proxy
+    privileged: true
+    stdin_open: true
+    tty: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/data
+
     deploy:
       replicas: 1
       placement:
