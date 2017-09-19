@@ -199,6 +199,8 @@ services:
           cpus: '0.50'
           memory: 128M
 
+  # How to use environment variables in docker compose
+  # source: https://stackoverflow.com/questions/29377853/how-to-use-environment-variables-in-docker-compose
   # source: https://github.com/danguita/prometheus-monitoring-stack/blob/master/docker-compose.yml
   configuration_manager:
     image: busybox
@@ -206,46 +208,15 @@ services:
     - config.prometheus
     volumes:
       - ./config:/config
+      - ./config.prometheus:/config.prometheus
     entrypoint:
       - /bin/bash
       - -c
     command:
-      - sed "s,ALERT_SLACK_USERNAME,${ALERT_SLACK_USERNAME},g;
+      - . /config.prometheus; sed "s,ALERT_SLACK_USERNAME,${ALERT_SLACK_USERNAME},g;
              s,ALERT_SLACK_CHANNEL,${ALERT_SLACK_CHANNEL},g;
              s,ALERT_SLACK_INCOMING_WEBHOOK_URL,${ALERT_SLACK_INCOMING_WEBHOOK_URL},g"
              /config/alertmanager.template.yml > /config/alertmanager.yml
-
-  # DISABLED #portainer:
-  # DISABLED #  image: portainer/portainer
-  # DISABLED #  privileged: true
-  # DISABLED #  # command: -H tcp://$MANAGER_IP:2375
-  # DISABLED #  ports:
-  # DISABLED #    - 9000:9000
-  # DISABLED #  # networks:
-  # DISABLED #  #   - proxy
-  # DISABLED #  stdin_open: true
-  # DISABLED #  tty: true
-  # DISABLED #  volumes:
-  # DISABLED #    - /var/run/docker.sock:/var/run/docker.sock
-  # DISABLED #    - "$PWD/data:/data"
-  # DISABLED #  deploy:
-  # DISABLED #    replicas: 1
-  # DISABLED #    restart_policy:
-  # DISABLED #      condition: on-failure
-  # DISABLED #      delay: 60s
-  # DISABLED #    placement:
-  # DISABLED #      constraints:
-  # DISABLED #        - node.role == manager
-      # labels:
-      #   - com.df.notify=true
-      #   - com.df.distribute=true
-      #   - com.df.port=9000
-      #   - com.df.servicePath=/#/auth
-      #   - "traefik.port=9000"
-      #   - "traefik.frontend.rule=Host:mydomain.lan;PathPrefixStrip:/portainer"
-      #   - "traefik.docker.network=proxy"
-    # depends_on:
-    #   - proxy
 
 # ------------------------------------------------------------------------------------
 
