@@ -177,8 +177,8 @@ services:
       # DISABLED # - '-alertmanager.url=http://alertmanager:9193'
       - '-web.console.libraries=/usr/share/prometheus/console_libraries'
       - '-web.console.templates=/usr/share/prometheus/consoles'
-    # expose:
-    #   - 9090
+    expose:
+      - 9090
     ports:
       - "0.0.0.0:9090:9090"
     depends_on:
