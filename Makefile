@@ -38,6 +38,9 @@ bootstrap-swarm:
 swarm-lab-from-scratch:
 	@bash ./scripts/swarm-lab-from-scratch.sh
 
+create-monitoring-overlay-network:
+	@docker network create monitoring -d overlay
+
 create-dm-local:
 	./bin/docker-machine-x86_64 create -d virtualbox local
 
@@ -276,6 +279,9 @@ stop-portainer:
 
 stop-viz:
 	@docker service rm viz
+
+stop-whoami:
+	@docker service rm whoami
 
 stop-swarmpit:
 	@docker service rm swarmpit

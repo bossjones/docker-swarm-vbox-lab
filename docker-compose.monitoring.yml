@@ -62,6 +62,8 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     expose:
       - 8080
+    ports:
+      - '8080:8080'
     depends_on:
       - influx
     # NOTE: We use the mode global for deploy in cadvisor service.
@@ -90,6 +92,8 @@ services:
     command: '-collector.procfs=/host/proc -collector.sysfs=/host/sys -collector.filesystem.ignored-mount-points="^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)" collector.filesystem.ignored-fs-types="^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"'
     expose:
       - 9100
+    ports:
+      - '9100:9100'
     hostname: "{{.Node.ID}}"
     environment:
       HOST_HOSTNAME: /etc/host_hostname
@@ -109,6 +113,8 @@ services:
 
   alertmanager:
     image: prom/alertmanager
+    expose:
+      - 9193
     ports:
       - "9193:9193"
     volumes:
@@ -156,6 +162,8 @@ services:
   # Get metrics about the actual docker daemon
   docker-exporter:
     image: basi/socat:${DOCKER_EXPORTER_VERSION:-v0.1.0}
+    ports:
+      - 4998:4999
     deploy:
       mode: global
       resources:

@@ -1,6 +1,32 @@
 # docker-swarm-vbox-lab
 lab to try out using docker swarm on virtualized environment using vagrant
 
+# Stack Overview( All using docker-swarm )
+- Prometheus Server
+- Prometheus Alertmanager
+- Node Exporter
+- Portainer
+- Grafana
+- Nginx reverse proxy with SSL/TLS [Let's encrypt certificate](https://letsencrypt.org/)
+- ELK stack ( Elasticsearch, Logstash, Kibana )
+
+# Future ( Fun things to try to get working )
+- Bro IDS
+- Redis/Zmq/RabbitMq ( Some sort of queue solution )
+- zq [Kafka-based Job Queue for Python ](https://github.com/joowani/kq)
+- etcd: [Distributed reliable key-value store for the most critical data of a distributed system](https://github.com/coreos/etcd)
+- faas: [Functions as a Service (OpenFaaS)](https://github.com/alexellis/faas)
+- opentracing: [distributed tracing and context propagation](https://github.com/opentracing)
+- Zipkin
+- Jaegar
+- locustio
+- Loki: [Simple, Distributed Tracing](https://github.com/weaveworks-experiments/loki)
+- Vizceral: [WebGL visualization for displaying animated traffic graphs](https://github.com/Netflix/vizceral)
+- Jenkins: [For automation of tasks](https://github.com/jenkinsci/docker)
+- Vault: [hashicorp secret management](https://github.com/hashicorp/docker-vault)
+- [Augmented Traffic Control:](https://github.com/facebook/augmented-traffic-control)
+- Facebook Osquery: [SQL powered operating system instrumentation, monitoring, and analytics.](https://github.com/kolide/docker-osquery/blob/master/ubuntu16-osquery/Dockerfile)
+- Hubble: [Security compliance framework](https://github.com/hubblestack/hubble-salt)
 # Research:
 
 - https://www-public.tem-tsp.eu/~berger_o/docker/install-docker-machine-virtualbox.html
