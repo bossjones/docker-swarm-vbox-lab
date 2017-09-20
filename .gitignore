@@ -73,3 +73,4 @@ data/
 
 # don't need to save this
 config.prometheus
+.env

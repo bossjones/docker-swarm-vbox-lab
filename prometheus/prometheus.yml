@@ -9,11 +9,11 @@ global:
   external_labels:
       monitor: 'my-project'
 
-# Load and evaluate rules in this file every 'evaluation_interval' seconds.
-rule_files:
-  - "alert.rules"
-  # - "first.rules"
-  # - "second.rules"
+# DISABLED ## Load and evaluate rules in this file every 'evaluation_interval' seconds.
+# DISABLED #rule_files:
+# DISABLED #  - "alert.rules"
+# DISABLED #  # - "first.rules"
+# DISABLED #  # - "second.rules"
 
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
@@ -29,4 +29,4 @@ scrape_configs:
     # scheme defaults to 'http'.
 
     static_configs:
-         - targets: ['localhost:9190','cadvisor:8080','node-exporter:9100']
+         - targets: ['localhost:9090','cadvisor:8080','node-exporter:9100']

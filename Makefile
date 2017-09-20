@@ -116,10 +116,10 @@ install-portainer:
 install-viz:
 	@docker service create \
 	--detach=true \
-	--publish=9090:8080/tcp \
+	--publish=9190:8080/tcp \
 	--limit-cpu 0.5 \
 	--name=viz \
-	--env PORT=9090 \
+	--env PORT=9190 \
 	--constraint=node.role==manager \
 	--mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
 	dockersamples/visualizer
@@ -246,6 +246,9 @@ open-logstash:
 
 open-nginx:
 	@bash ./scripts/open-nginx.sh
+
+open-alertmanager:
+	@bash ./scripts/open-alertmanager.sh
 
 open-portainer:
 	@bash ./scripts/open-portainer.sh
