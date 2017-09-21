@@ -191,6 +191,15 @@ perf-es:
 	$(DM) ssh node-01 sudo sysctl -w vm.max_map_count=262144
 	$(DM) ssh node-02 sudo sysctl -w vm.max_map_count=262144
 	$(DM) ssh node-03 sudo sysctl -w vm.max_map_count=262144
+	# TODO: Make sure we do a check to see if this is in there or not
+	# FIXME: Make sure we do a check to see if this is in there or not
+	# Make it perminent
+	$(DM) ssh swarm-manager echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	$(DM) ssh node-01 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	$(DM) ssh node-02 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	$(DM) ssh node-03 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+
+
 
 # This will start the services in the stack which is named monitor.
 # This might take some time the first time as the nodes have
