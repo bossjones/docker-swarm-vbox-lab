@@ -14,9 +14,14 @@ volumes:
 #   front-tier:
 #   back-tier:
 
+networks:
+  monitoring:
+
 services:
   influx:
     image: influxdb
+    networks:
+      - monitoring
     volumes:
       - influx:/var/lib/influxdb
     deploy:
@@ -27,6 +32,8 @@ services:
 
   grafana:
     image: grafana/grafana
+    networks:
+      - monitoring
     ports:
       - "3000:3000"
     env_file:
@@ -51,6 +58,8 @@ services:
 
   cadvisor:
     image: google/cadvisor
+    networks:
+      - monitoring
     # NOTE: Create services using templates
     # source: https://docs.docker.com/engine/reference/commandline/service_create/#create-services-using-templates
     hostname: '{{.Node.ID}}'
@@ -85,6 +94,8 @@ services:
 
   node-exporter:
     image: prom/node-exporter
+    networks:
+      - monitoring
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -113,6 +124,8 @@ services:
 
   alertmanager:
     image: prom/alertmanager
+    networks:
+      - monitoring
     expose:
       - 9193
     ports:
@@ -162,6 +175,8 @@ services:
   # Get metrics about the actual docker daemon
   docker-exporter:
     image: basi/socat:${DOCKER_EXPORTER_VERSION:-v0.1.0}
+    networks:
+      - monitoring
     ports:
       - 4998:4999
     deploy:
@@ -176,6 +191,8 @@ services:
 
   prometheus:
     image: prom/prometheus
+    networks:
+      - monitoring
     volumes:
       - ./prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
@@ -212,6 +229,8 @@ services:
   # source: https://github.com/danguita/prometheus-monitoring-stack/blob/master/docker-compose.yml
   configuration_manager:
     image: busybox
+    networks:
+      - monitoring
     # env_file:
     # - config.prometheus
     env_file: .env

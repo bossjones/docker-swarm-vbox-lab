@@ -11,6 +11,7 @@ lab to try out using docker swarm on virtualized environment using vagrant
 - ELK stack ( Elasticsearch, Logstash, Kibana )
 
 # Future ( Fun things to try to get working )
+- StackStorm [Event-driven automation](https://github.com/StackStorm/st2-docker)
 - Bro IDS
 - Redis/Zmq/RabbitMq ( Some sort of queue solution )
 - zq [Kafka-based Job Queue for Python ](https://github.com/joowani/kq)
@@ -22,11 +23,16 @@ lab to try out using docker swarm on virtualized environment using vagrant
 - locustio
 - Loki: [Simple, Distributed Tracing](https://github.com/weaveworks-experiments/loki)
 - Vizceral: [WebGL visualization for displaying animated traffic graphs](https://github.com/Netflix/vizceral)
+- [Vizceral Example](https://github.com/Netflix/vizceral-example)
 - Jenkins: [For automation of tasks](https://github.com/jenkinsci/docker)
 - Vault: [hashicorp secret management](https://github.com/hashicorp/docker-vault)
 - [Augmented Traffic Control:](https://github.com/facebook/augmented-traffic-control)
 - Facebook Osquery: [SQL powered operating system instrumentation, monitoring, and analytics.](https://github.com/kolide/docker-osquery/blob/master/ubuntu16-osquery/Dockerfile)
 - Hubble: [Security compliance framework](https://github.com/hubblestack/hubble-salt)
+- doorman: [osquery fleet manager](https://github.com/mwielgoszewski/doorman)
+- ChaosMonkey: [resiliency tool that helps applications tolerate random instance failures](https://github.com/netflix/chaosmonkey)
+- git-server-docker: [Git Server in Docker](https://github.com/jkarlosb/git-server-docker)
+- gitlab-ce: [GitLab Community Edition docker image based on the Omnibus package](https://hub.docker.com/r/gitlab/gitlab-ce/)
 # Research:
 
 - https://www-public.tem-tsp.eu/~berger_o/docker/install-docker-machine-virtualbox.html

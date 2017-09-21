@@ -262,6 +262,9 @@ open-viz:
 open-prometheus:
 	@bash ./scripts/open-prometheus.sh
 
+open-elasticsearch:
+	@bash ./scripts/open-elasticsearch.sh
+
 open-seagull:
 	@bash ./scripts/open-seagull.sh
 
@@ -288,3 +291,42 @@ stop-swarmpit:
 
 docker-service-ls:
 	@docker service ls
+
+start-docker-machines:
+	@docker-machine start local
+	@docker-machine start swarm-manager
+	@docker-machine start node-01
+	@docker-machine start node-02
+	@docker-machine start node-03
+
+regenerate-certs-docker-machines:
+	@docker-machine regenerate-certs -f local
+	@docker-machine regenerate-certs -f swarm-manager
+	@docker-machine regenerate-certs -f node-01
+	@docker-machine regenerate-certs -f node-02
+	@docker-machine regenerate-certs -f node-03
+
+# source: https://docs.docker.com/machine/drivers/virtualbox/
+# a06cd926f5855d4f21fb4bc9978a35312f815fbda0d0ef7fdc846861f4fc4600 *ubuntu-16.04.3-server-amd64.iso
+create-docker-machine-xenial:
+	docker-machine create -d virtualbox \
+	--virtualbox-memory 4096 \
+	--virtualbox-cpu-count 2 \
+	--virtualbox-boot2docker-url http://releases.ubuntu.com/16.04/ubuntu-16.04.3-server-amd64.iso \
+	swarm-manager-xenial
+
+	docker-machine create -d virtualbox \
+	--virtualbox-boot2docker-url http://releases.ubuntu.com/16.04/ubuntu-16.04.3-server-amd64.iso \
+	local-xenial
+
+	docker-machine create -d virtualbox \
+	--virtualbox-boot2docker-url http://releases.ubuntu.com/16.04/ubuntu-16.04.3-server-amd64.iso \
+	node-xenial-01
+
+	docker-machine create -d virtualbox \
+	--virtualbox-boot2docker-url http://releases.ubuntu.com/16.04/ubuntu-16.04.3-server-amd64.iso \
+	node-xenial-02
+
+	docker-machine create -d virtualbox \
+	--virtualbox-boot2docker-url http://releases.ubuntu.com/16.04/ubuntu-16.04.3-server-amd64.iso \
+	node-xenial-03

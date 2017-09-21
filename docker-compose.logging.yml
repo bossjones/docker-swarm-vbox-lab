@@ -5,15 +5,21 @@ version: '3'
 
 networks:
   logging:
-  monitoring_monitoring:
+  monitor_monitoring:
     external: true
+
+volumes:
+  esdata:
+    driver: local
 
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:5.3.2
+    ports:
+      - '9200:9200'
     networks:
       - logging
-      - monitoring_monitoring
+      - monitor_monitoring
     environment:
       ES_JAVA_OPTS: '-Xms256m -Xmx256m'
       # NOTE: https://www.elastic.co/products/x-pack
@@ -35,6 +41,7 @@ services:
     image: docker.elastic.co/logstash/logstash:5.3.2
     networks:
       - logging
+      - monitor_monitoring
     volumes:
       - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     depends_on:
@@ -46,6 +53,7 @@ services:
     image: bekt/logspout-logstash
     networks:
       - logging
+      - monitor_monitoring
     environment:
       ROUTE_URIS: 'logstash://logstash:5000'
       DOCKER_LABELS: "true"
@@ -77,6 +85,7 @@ services:
     image: docker.elastic.co/kibana/kibana:5.3.2
     networks:
       - logging
+      - monitor_monitoring
     # The router mesh feature will then let us access
     # kibana from port 8088 of any host in the swarm.
     ports:
@@ -89,7 +98,3 @@ services:
       XPACK_MONITORING_ENABLED: 'false'
     deploy:
       replicas: 1
-
-volumes:
-  esdata:
-    driver: local
