@@ -42,6 +42,12 @@ lab to try out using docker swarm on virtualized environment using vagrant
 - https://botleg.com/stories/monitoring-docker-swarm-with-cadvisor-influxdb-and-grafana/
 - https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.logging.yml
 
+# Recover after swarm reboot
+- https://forums.docker.com/t/docker-worker-nodes-shown-as-down-after-re-start/22329/2
+- https://github.com/moby/moby/issues/23828
+- https://docs.docker.com/engine/swarm/admin_guide/#monitor-swarm-health
+- https://docs.docker.com/engine/swarm/admin_guide/#run-manager-only-nodes
+
 #
 
 `export discotoken=<some-token>`

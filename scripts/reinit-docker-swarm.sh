@@ -12,30 +12,38 @@ dvm ls
 dmv use 17.05.0-ce
 docker ps
 
+# TODO: implement a check for this
+# source: http://www.georgevreilly.com/blog/2015/12/23/ParseMinVerBash.html
 
-${_DIR}/../bin/docker-machine-x86_64 create -d virtualbox local
-echo $(${_DIR}/../bin/docker-machine-x86_64 env local) > ./dm-local-env
-source ./dm-local-env
+# connect to docker-swarm manager
+echo $(${_DIR}/../bin/docker-machine-x86_64 env swarm-manager) > ./dm-swarm-manager-env
+source ./dm-swarm-manager-env
+
+# NOTE: example contents of above ^
+# export DOCKER_TLS_VERIFY="1"
+# export DOCKER_HOST="tcp://192.168.99.101:2376"
+# export DOCKER_CERT_PATH="/Users/malcolm/.docker/machine/machines/swarm-manager"
+# export DOCKER_MACHINE_NAME="swarm-manager"
 
 # make sure it works
 docker ps
 
-# Setup all of the virtualbox machines
-${_DIR}/../bin/docker-machine-x86_64 create -d virtualbox swarm-manager
-${_DIR}/../bin/docker-machine-x86_64 create -d virtualbox node-01
-${_DIR}/../bin/docker-machine-x86_64 create -d virtualbox node-02
-${_DIR}/../bin/docker-machine-x86_64 create -d virtualbox node-03
+# Remove all swarm workers
+docker node rm --force node-01
+docker node rm --force node-02
+docker node rm --force node-03
 
 # Get swarm-manager ip address for its docker-machine
 MANAGER_IP=$(${_DIR}/../bin/docker-machine-x86_64 ip swarm-manager)
 echo ${MANAGER_IP}
 
-# Turn this into the swarm master
-${_DIR}/../bin/docker-machine-x86_64 ssh swarm-manager docker swarm init --advertise-addr ${MANAGER_IP}
-
 # Get token that will be used in joining agents to new swarm master
 WORKER_TOKEN=$(${_DIR}/../bin/docker-machine-x86_64 ssh swarm-manager docker swarm join-token --quiet worker)
 echo ${WORKER_TOKEN}
+
+${_DIR}/../bin/docker-machine-x86_64 ssh node-01 docker swarm leave
+${_DIR}/../bin/docker-machine-x86_64 ssh node-02 docker swarm leave
+${_DIR}/../bin/docker-machine-x86_64 ssh node-03 docker swarm leave
 
 ${_DIR}/../bin/docker-machine-x86_64 ssh node-01 docker swarm join --token ${WORKER_TOKEN} ${MANAGER_IP}:2377
 ${_DIR}/../bin/docker-machine-x86_64 ssh node-02 docker swarm join --token ${WORKER_TOKEN} ${MANAGER_IP}:2377
@@ -46,3 +54,6 @@ source ./dm-swam-manager-env
 
 # prove it worked
 docker node ls
+
+# cleanup
+rm ./dm-swam-manager-env

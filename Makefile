@@ -65,6 +65,9 @@ create-dm-node-01:
 dm-ls:
 	$(DM) ls
 
+docker-clean:
+	@docker rm -v $$(docker ps --no-trunc -a -q); docker rmi $$(docker images -q --filter "dangling=true")
+
 # source: https://unix.stackexchange.com/questions/269912/send-command-to-the-shell-via-makefile
 env-dm-local:
 	echo $$(./bin/docker-machine-x86_64 env local) > ./dm-local-env
@@ -277,14 +280,15 @@ stop-monitoring:
 stop-nginx:
 	docker stack rm nginx
 
-stop-portainer:
+stop-portainer: docker-clean
 	docker stop portainer
 
 stop-viz:
 	@docker service rm viz
 
+# @docker service rm whoami
 stop-whoami:
-	@docker service rm whoami
+	@docker stack rm whoami
 
 stop-swarmpit:
 	@docker service rm swarmpit
@@ -330,3 +334,6 @@ create-docker-machine-xenial:
 	docker-machine create -d virtualbox \
 	--virtualbox-boot2docker-url http://releases.ubuntu.com/16.04/ubuntu-16.04.3-server-amd64.iso \
 	node-xenial-03
+
+reinit-docker-swarm-cluster:
+	@docker swarm leave --force
