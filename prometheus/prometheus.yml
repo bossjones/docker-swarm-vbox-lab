@@ -35,7 +35,7 @@ scrape_configs:
         port: 8080
   - job_name: 'docker-engine'
     dns_sd_configs:
-      - names: ['tasks.engine-proxy']
+      - names: ['tasks.docker-exporter']
         type: A
         port: 4999
 
