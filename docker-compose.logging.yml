@@ -58,7 +58,7 @@ services:
       ROUTE_URIS: 'logstash://logstash:5000'
       DOCKER_LABELS: "true"
     ports:
-      - 0.0.0.0:8000:80
+      - '0.0.0.0:8000:80'
     # We also need to create a volume for the Docker socket,
     # /var/run/docker.sock.
     # This lets the container to attach to the docker daemon
