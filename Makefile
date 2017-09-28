@@ -9,6 +9,7 @@ DOCKER_COMPOSE_VERSION := 1.16.1
 MKDIR = mkdir
 DM = ./bin/docker-machine-x86_64
 DC = ./bin/docker-compose-x86_64
+DOCKVIZ = docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock nate/dockviz
 
 # docker version manager ( this doesnt work I think )
 bootstrap-dvm:
@@ -199,7 +200,23 @@ perf-es:
 	$(DM) ssh node-02 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
 	$(DM) ssh node-03 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
 
+dockviz-containers:
+	$(DOCKVIZ) containers -d | dot -Tpng -o images/containers.png
 
+dockviz-images:
+	$(DOCKVIZ) images --dot | dot -Tpng -o images/images.png
+
+dockviz-images-label:
+	$(DOCKVIZ) images --dot --only-labelled | dot -Tpng -o images/images_label.png
+
+dockviz-image-tree:
+	$(DOCKVIZ) images -t
+
+dockviz-image-tree-labeled:
+	$(DOCKVIZ) images -t -l
+
+dockviz-image-tree-incremental:
+	$(DOCKVIZ) images -t -i
 
 # This will start the services in the stack which is named monitor.
 # This might take some time the first time as the nodes have
@@ -219,6 +236,9 @@ deploy-nginx:
 
 deploy-whoami:
 	@docker stack deploy -c docker-compose.whoami.yml whoami
+
+deploy-logspout:
+	@docker stack deploy -c docker-compose.logspout.yml logspout
 
 deploy-portainer:
 	# @docker stack deploy -c docker-compose.portainer.yml portainer
@@ -280,6 +300,21 @@ open-elasticsearch:
 open-seagull:
 	@bash ./scripts/open-seagull.sh
 
+open-kibana:
+	@bash ./scripts/open-kibana.sh
+
+open: open-prometheus open-viz open-portainer open-nginx open-logstash open-grafana open-kibana
+
+dm-stop-all:
+	docker-machine stop local
+	docker-machine stop swarm-manager
+	docker-machine stop node-01
+	docker-machine stop node-02
+	docker-machine stop node-03
+
+es-create-index:
+	@bash ./scripts/es-create-index.sh
+
 stop-logging:
 	docker stack rm elk
 
@@ -288,6 +323,9 @@ stop-monitoring:
 
 stop-nginx:
 	docker stack rm nginx
+
+stop-logspout:
+	docker stack rm logspout
 
 stop-portainer: docker-clean
 	docker stop portainer
@@ -301,6 +339,8 @@ stop-whoami:
 
 stop-swarmpit:
 	@docker service rm swarmpit
+
+stop: stop-logging stop-monitoring
 
 docker-service-ls:
 	@docker service ls

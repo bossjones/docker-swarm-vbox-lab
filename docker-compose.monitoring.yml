@@ -19,6 +19,8 @@ networks:
 
 services:
   influx:
+    ports:
+    - '8086:8086'
     image: influxdb
     networks:
       - monitoring
@@ -178,7 +180,7 @@ services:
     networks:
       - monitoring
     ports:
-      - 4998:4999
+      - '4998:4999'
     deploy:
       mode: global
       resources:
@@ -254,6 +256,13 @@ services:
              s,ALERT_SLACK_CHANNEL,${ALERT_SLACK_CHANNEL},g;
              s,ALERT_SLACK_INCOMING_WEBHOOK_URL,${ALERT_SLACK_INCOMING_WEBHOOK_URL},g"
              /config/alertmanager.template.yml > /config/alertmanager.yml; cat /config/alertmanager.yml
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
 
 # ------------------------------------------------------------------------------------
 # TODO: Try this!

@@ -1,0 +1,42 @@
+version: '3'
+
+networks:
+  monitor_monitoring:
+    external: true
+
+# source: https://github.com/deviantony/docker-elk/pull/110/files
+
+services:
+  logspout:
+    image: bekt/logspout-logstash
+    networks:
+      - monitor_monitoring
+    environment:
+      ROUTE_URIS: 'logstash://logstash:5000'
+      DOCKER_LABELS: "true"
+    # ports:
+    #   - '0.0.0.0:8000:80'
+    # We also need to create a volume for the Docker socket,
+    # /var/run/docker.sock.
+    # This lets the container to attach to the docker daemon
+    # in the host and collect all the logs.
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+    depends_on:
+      - logstash
+    deploy:
+      # FIXME: TRY THIS OUT # mode: global
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == node-03
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+        reservations:
+          cpus: '0.25'
+          memory: 32M

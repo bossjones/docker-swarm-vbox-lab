@@ -4,22 +4,32 @@ version: '3'
 # source: https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.logging.yml
 
 networks:
-  logging:
+  # logging:
   monitor_monitoring:
     external: true
 
+# NOTE: scope
+# source: https://docs.docker.com/engine/extend/plugins_volume/#volumedrivercapabilities
+# Supported scopes are global and local.
+# Any other value in Scope will be ignored,
+# and local is used.
+# Scope allows cluster managers to handle the volume in different ways.
+# For instance, a scope of global,
+# signals to the cluster manager that it only needs to
+# create the volume once instead of on each Docker host.
+# More capabilities may be added in the future.
 volumes:
   esdata:
     driver: local
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.3.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.1
     ports:
       - '9200:9200'
       - '9300:9300'
     networks:
-      - logging
+      # - logging
       - monitor_monitoring
     environment:
       ES_JAVA_OPTS: '-Xms256m -Xmx256m'
@@ -39,9 +49,10 @@ services:
           - node.hostname == node-01
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:5.3.2
+    # image: docker.elastic.co/logstash/logstash:5.3.2
+    image: docker.elastic.co/logstash/logstash:5.6.1
     networks:
-      - logging
+      # - logging
       - monitor_monitoring
     # ----------------------------------------------------
     # source: https://github.com/moby/moby/issues/20370
@@ -84,49 +95,57 @@ services:
     ports:
       - '127.0.0.1:5044:5044'
       - '127.0.0.1:9600:9600'
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      # NOTE: Enable JMX Remote
+      # LS_JAVA_OPTS: "-Xmx256m -Xms256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=192.168.99.103 -Dcom.sun.management.jmxremote.local.only=false"
     volumes:
       - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     depends_on:
       - elasticsearch
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.hostname == node-02
 
-  logspout:
-    image: bekt/logspout-logstash
-    networks:
-      - logging
-      - monitor_monitoring
-    environment:
-      ROUTE_URIS: 'logstash://logstash:5000'
-      DOCKER_LABELS: "true"
-    ports:
-      - '0.0.0.0:8000:80'
-    # We also need to create a volume for the Docker socket,
-    # /var/run/docker.sock.
-    # This lets the container to attach to the docker daemon
-    # in the host and collect all the logs.
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - logstash
-    deploy:
-      mode: global
-      restart_policy:
-        condition: on-failure
-        delay: 60s
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 64M
-        reservations:
-          cpus: '0.25'
-          memory: 32M
+  # logspout:
+  #   image: bekt/logspout-logstash
+  #   networks:
+  #     # - logging
+  #     - monitor_monitoring
+  #   environment:
+  #     ROUTE_URIS: 'logstash://logstash:5000'
+  #     DOCKER_LABELS: "true"
+  #   ports:
+  #     - '0.0.0.0:8000:80'
+  #   # We also need to create a volume for the Docker socket,
+  #   # /var/run/docker.sock.
+  #   # This lets the container to attach to the docker daemon
+  #   # in the host and collect all the logs.
+  #   volumes:
+  #     - '/var/run/docker.sock:/var/run/docker.sock'
+  #   depends_on:
+  #     - logstash
+  #   deploy:
+  #     mode: global
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 60s
+  #     resources:
+  #       limits:
+  #         cpus: '0.25'
+  #         memory: 64M
+  #       reservations:
+  #         cpus: '0.25'
+  #         memory: 32M
 
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:5.3.2
+    # image: docker.elastic.co/kibana/kibana:5.3.2
+    image: docker.elastic.co/kibana/kibana:5.6.1
     networks:
-      - logging
+      # - logging
       - monitor_monitoring
     # The router mesh feature will then let us access
     # kibana from port 8088 of any host in the swarm.
@@ -140,3 +159,6 @@ services:
       XPACK_MONITORING_ENABLED: 'false'
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.hostname == node-03

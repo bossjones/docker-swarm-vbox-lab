@@ -37,7 +37,8 @@ scrape_configs:
     dns_sd_configs:
       - names: ['tasks.docker-exporter']
         type: A
-        port: 4999
+        # port: 4999
+        port: 4998
 
 
     # Override the global default and scrape targets from this job every 5 seconds.

@@ -1,6 +1,9 @@
 # docker-swarm-vbox-lab
 lab to try out using docker swarm on virtualized environment using vagrant
 
+# Lots of influence from
+- https://github.com/deviantony/docker-elk
+
 # Stack Overview( All using docker-swarm )
 - Prometheus Server
 - Prometheus Alertmanager
@@ -336,3 +339,7 @@ Borrowed from https://github.com/vegasbrianc/prometheus
 # networking external example
 
 - https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.logging.yml
+
+# networking on swarm classic
+
+- [Multi-host networking with standalone swarms](https://docs.docker.com/engine/userguide/networking/overlay-standalone-swarm/)
