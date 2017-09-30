@@ -323,6 +323,9 @@ open-prometheus:
 open-elasticsearch:
 	@bash ./scripts/open-elasticsearch.sh
 
+open-head-plugin:
+	@bash ./scripts/open-head-plugin.sh
+
 open-seagull:
 	@bash ./scripts/open-seagull.sh
 
@@ -336,7 +339,7 @@ open: open-prometheus open-viz open-portainer open-nginx open-logstash open-graf
 
 open-monitoring: open-influxdb open-grafana open-cadvisor open-node-exporter
 
-open-logging: open-kibana open-elasticsearch
+open-logging: open-kibana open-elasticsearch open-head-plugin
 
 dm-start-all:
 	docker-machine start local

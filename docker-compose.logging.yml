@@ -25,7 +25,9 @@ volumes:
 services:
   elasticsearch:
     build:
-      context: container/elasticsearch
+      context: ./container/elasticsearch
+      dockerfile: Dockerfile
+    image: elasticsearch
     # image: docker.elastic.co/elasticsearch/elasticsearch:5.6.1
     ports:
       - '9200:9200'
@@ -67,23 +69,23 @@ services:
         constraints:
           - node.hostname == node-01
 
-      # NOTE: example - https://github.com/kazgurs/elasticsearch/blob/4e60ae2c0a968812d333e44ea6d2c981747736f5/README.md
-      # NOTE: https://github.com/mobz/elasticsearch-head#running-with-built-in-server
-      head:
-        # container_name: head
-        image: mobz/elasticsearch-head:5
-        depends_on:
-          - elasticsearch
-        networks:
-          - default
-          - monitor_monitoring
-        ports:
-          - 9100:9100
-        deploy:
-          replicas: 1
-          placement:
-            constraints:
-              - node.hostname == node-01
+  # NOTE: example - https://github.com/kazgurs/elasticsearch/blob/4e60ae2c0a968812d333e44ea6d2c981747736f5/README.md
+  # NOTE: https://github.com/mobz/elasticsearch-head#running-with-built-in-server
+  head:
+    # container_name: head
+    image: mobz/elasticsearch-head:5
+    depends_on:
+      - elasticsearch
+    networks:
+      - default
+      - monitor_monitoring
+    ports:
+      - 9111:9100
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == node-01
 
   # logstash:
   #   # image: docker.elastic.co/logstash/logstash:5.3.2
