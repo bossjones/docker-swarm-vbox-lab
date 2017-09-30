@@ -11,9 +11,11 @@ _GRAFANA_IP=$(docker-machine ip swarm-manager)
 
 # source: https://stackoverflow.com/questions/31166932/create-grafana-dashboards-with-api
 InstallDashboards() {
-  curl -XPOST -i "http://admin:admin@${_GRAFANA_IP}:3000/api/dashboards/db" \
-   --data-binary @${_DIR}/../dashboards/System_Monitoring.json \
-   -H "Content-Type: application/json"
+  for f in ${_DIR}/../dashboards/*; do
+    curl -XPOST -i "http://admin:admin@${_GRAFANA_IP}:3000/api/dashboards/db" \
+      --data-binary @${_DIR}/../dashboards/$(basename $f) \
+      -H "Content-Type: application/json"
+  done
 }
 
 AddDataSourceCadvisor() {
@@ -31,6 +33,7 @@ AddDataSourcePrometheus() {
     --data-binary \
     '{"name":"Prometheus","type":"prometheus","url":"http://prometheus:9090","access":"proxy","isDefault":false,"database":"prometheus"}'
 }
+
 until AddDataSourcePrometheus; do
   echo 'Configuring Grafana...'
   sleep 1
