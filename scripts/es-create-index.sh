@@ -2,6 +2,8 @@
 
 set -x
 
+# source: https://botleg.com/stories/log-management-of-docker-swarm-with-elk-stack/
+
 export ES_IP=`docker-machine ip node-01`
 export URL_BASE="http://${ES_IP}:9200/.kibana"
 

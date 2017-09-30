@@ -33,6 +33,15 @@ scrape_configs:
     static_configs:
       - targets: ['docker-exporter:4999']
 
+  # DISABLED # -   job_name: 'elasticsearch'
+  # DISABLED #     scrape_interval: 10s
+  # DISABLED #     metrics_path: "/_prometheus/metrics"
+  # DISABLED #     static_configs:
+  # DISABLED #     - targets:
+  # DISABLED #       - elasticsearch:9200
+  # DISABLED #       # - node1:9200
+  # DISABLED #       # - node3:9200
+
     # Override the global default and scrape targets from this job every 5 seconds.
     # scrape_interval: 5s
 
