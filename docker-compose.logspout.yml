@@ -2,7 +2,8 @@ version: '3'
 
 networks:
   monitor_monitoring:
-    external: true
+    external:
+      name: monitor_monitoring
 
 # source: https://github.com/deviantony/docker-elk/pull/110/files
 
@@ -10,6 +11,7 @@ services:
   logspout:
     image: bekt/logspout-logstash
     networks:
+      - default
       - monitor_monitoring
     environment:
       ROUTE_URIS: 'logstash://logstash:5000'

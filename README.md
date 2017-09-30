@@ -352,3 +352,31 @@ Borrowed from https://github.com/vegasbrianc/prometheus
 - https://medium.com/zendesk-engineering/making-docker-and-consul-get-along-5fceda1d52b9
 - https://www.consul.io/docs/guides/consul-containers.html
 - https://blog.octo.com/en/how-does-it-work-docker-part-1-swarm-general-architecture/
+
+
+# Networking problems
+- https://github.com/docker/compose/issues/2908
+- https://docs.docker.com/v17.06/compose/compose-file/#external-1
+
+Example: In the example below, proxy is the gateway to the outside world. Instead of attempting to create a network called [projectname]_outside, Compose will look for an existing network simply called outside and connect the proxy service’s containers to it.
+
+```
+version: '2'
+
+services:
+  proxy:
+    build: ./proxy
+    networks:
+      - outside
+      - default
+  app:
+    build: ./app
+    networks:
+      - default
+
+networks:
+  outside:
+    external: true
+```
+
+- https://blog.octo.com/en/how-does-it-work-docker-part-3-load-balancing-service-discovery-and-security/

@@ -1,8 +1,16 @@
 version: '3'
 
+networks:
+  monitor_monitoring:
+    external:
+      name: monitor_monitoring
+
 services:
   whoami:
     image: emilevauge/whoami
+    networks:
+      - default
+      - monitor_monitoring
     ports:
       - "7001:80"
     deploy:

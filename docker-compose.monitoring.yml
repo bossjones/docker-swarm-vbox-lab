@@ -27,6 +27,7 @@ services:
     image: influxdb
     networks:
       - monitoring
+      - default
     volumes:
       - influx:/var/lib/influxdb
     deploy:
@@ -39,6 +40,7 @@ services:
     image: grafana/grafana
     networks:
       - monitoring
+      - default
     ports:
       - "3000:3000"
     env_file:
@@ -62,9 +64,14 @@ services:
           memory: 32M
 
   cadvisor:
-    image: google/cadvisor
+    # NOTE: Using patched cadvisor due to bug w/ -printf on busybox ( boot2docker )
+    # source: https://hub.docker.com/r/blep/cadvisor_bugfix1556/
+    # issue: https://github.com/google/cadvisor/issues/1556
+    # image: google/cadvisor
+    image: blep/cadvisor_bugfix1556:latest
     networks:
       - monitoring
+      - default
     # NOTE: Create services using templates
     # source: https://docs.docker.com/engine/reference/commandline/service_create/#create-services-using-templates
     hostname: '{{.Node.ID}}'
@@ -89,18 +96,19 @@ services:
         condition: on-failure
         delay: 60s
       # source: https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.yml
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 128M
-        reservations:
-          cpus: '0.10'
-          memory: 64M
+      # resources:
+      #   limits:
+      #     cpus: '0.10'
+      #     memory: 128M
+      #   reservations:
+      #     cpus: '0.10'
+      #     memory: 64M
 
   node-exporter:
     image: prom/node-exporter
     networks:
       - monitoring
+      - default
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -131,6 +139,7 @@ services:
     image: prom/alertmanager
     networks:
       - monitoring
+      - default
     expose:
       - 9193
     ports:
@@ -182,6 +191,7 @@ services:
     image: basi/socat:${DOCKER_EXPORTER_VERSION:-v0.1.0}
     networks:
       - monitoring
+      - default
     ports:
       - '4998:4999'
     deploy:
@@ -198,6 +208,7 @@ services:
     image: prom/prometheus
     networks:
       - monitoring
+      - default
     volumes:
       - ./prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
@@ -236,6 +247,7 @@ services:
     image: busybox
     networks:
       - monitoring
+      - default
     # env_file:
     # - config.prometheus
     env_file: .env
@@ -260,12 +272,13 @@ services:
              s,ALERT_SLACK_INCOMING_WEBHOOK_URL,${ALERT_SLACK_INCOMING_WEBHOOK_URL},g"
              /config/alertmanager.template.yml > /config/alertmanager.yml; cat /config/alertmanager.yml
 
-  nginx-proxy:
-    image: jwilder/nginx-proxy
-    ports:
-      - "80:80"
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
+  # TODO: Try this asap
+  # nginx-proxy:
+  #   image: jwilder/nginx-proxy
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - /var/run/docker.sock:/tmp/docker.sock:ro
 
 # ------------------------------------------------------------------------------------
 # TODO: Try this!

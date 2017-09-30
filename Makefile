@@ -39,9 +39,6 @@ bootstrap-swarm:
 swarm-lab-from-scratch:
 	@bash ./scripts/swarm-lab-from-scratch.sh
 
-create-monitoring-overlay-network:
-	@docker network create monitoring -d overlay
-
 create-dm-local:
 	./bin/docker-machine-x86_64 create -d virtualbox local
 
@@ -190,6 +187,10 @@ test:
 clean:
 	$(RM) ./bin/docker-compose-x86_64
 	$(RM) ./bin/docker-machine-x86_64
+
+create-monitoring-network:
+	docker network create --driver overlay --subnet=10.0.9.0/24 monitoring
+	docker network ls
 
 perf:
 	@bash ./scripts/perf.sh

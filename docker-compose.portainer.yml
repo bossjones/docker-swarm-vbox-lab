@@ -1,5 +1,10 @@
 version: '3'
 
+networks:
+  monitor_monitoring:
+    external:
+      name: monitor_monitoring
+
 # portainer-ssl/portainer-ssl.yml
 # source: https://github.com/Blaiserman/swarm-mode-init-script/blob/cb7f3594849aca244035934baf5f48837c116a20/compose/portainer-ssl/portainer-ssl.yml
 
@@ -22,8 +27,9 @@ services:
     # command: -H unix:///var/run/docker.sock
     ports:
       - 9000:9000
-    # networks:
-    #   - proxy
+    networks:
+      - default
+      - monitor_monitoring
     privileged: true
     stdin_open: true
     tty: true

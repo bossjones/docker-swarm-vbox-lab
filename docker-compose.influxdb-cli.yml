@@ -2,7 +2,8 @@ version: '3'
 
 networks:
   monitor_monitoring:
-    external: true
+    external:
+      name: monitor_monitoring
 
 # source: https://github.com/influxdata/TICK-docker/blob/master/1.3/docker-compose.yml
 services:
@@ -10,6 +11,9 @@ services:
   # docker-compose run influxdb-cli
   influxdb-cli:
     image: influxdb
+    networks:
+      - default
+      - monitor_monitoring
     entrypoint:
       - influx
       - -host
