@@ -7,7 +7,7 @@ set -e
 _INFLUX_IP=$(docker-machine ip swarm-manager)
 
 CreateCadvisorDatabase() {
-  curl -G http://${_INFLUX_IP}:8086/query --data-urlencode "q=CREATE DATABASE cadvisor"
+  curl -i -XPOST http://${_INFLUX_IP}:8086/query --data-urlencode "q=CREATE DATABASE mydb"
 }
 
 until CreateCadvisorDatabase; do
