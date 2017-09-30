@@ -380,3 +380,7 @@ networks:
 ```
 
 - https://blog.octo.com/en/how-does-it-work-docker-part-3-load-balancing-service-discovery-and-security/
+
+- LOOK AT ME: Service is not DNS resolvable from another one if containers run on different nodes https://github.com/docker/swarmkit/issues/1429
+
+- https://github.com/docker/swarmkit/issues/1716
