@@ -11,7 +11,9 @@ services:
     networks:
       - default
       - monitor_monitoring
+    expose:
+      - '7001'
     ports:
-      - "7001:80"
+      - '7001:80'
     deploy:
       mode: global
