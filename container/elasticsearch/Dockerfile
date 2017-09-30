@@ -1,12 +1,12 @@
 # https://github.com/elastic/elasticsearch-docker
-FROM docker.elastic.co/elasticsearch/elasticsearch:5.6.2
+FROM docker.elastic.co/elasticsearch/elasticsearch:5.6.1
 
 # Add your elasticsearch plugins setup here
 # Example: RUN elasticsearch-plugin install analysis-icu
 
 COPY ./plugins /plugins
 
-RUN elasticsearch-plugin install file:///plugins/elasticsearch-prometheus-exporter-5.6.2.0.zip
+RUN elasticsearch-plugin install file:///plugins/elasticsearch-prometheus-exporter-5.6.1.0.zip
 # https://distfiles.compuscene.net/elasticsearch/elasticsearch-prometheus-exporter-5.6.2.0.zip
 # RUN elasticsearch-plugin install mobz/elasticsearch-head
 

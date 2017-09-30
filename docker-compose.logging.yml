@@ -87,6 +87,14 @@ services:
         constraints:
           - node.hostname == node-01
 
+    # elasticsearch_exporter:
+    #     image: justwatch/elasticsearch_exporter:1.0.1
+    #     command:
+    #     - '-es.uri=http://elasticsearch:9200'
+    #     restart: always
+    #     ports:
+    #     - "127.0.0.1:9108:9108"
+
   # logstash:
   #   # image: docker.elastic.co/logstash/logstash:5.3.2
   #   image: docker.elastic.co/logstash/logstash:5.6.1
