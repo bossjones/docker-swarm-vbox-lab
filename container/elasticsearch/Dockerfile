@@ -10,6 +10,8 @@ RUN elasticsearch-plugin install file:///plugins/elasticsearch-prometheus-export
 # https://distfiles.compuscene.net/elasticsearch/elasticsearch-prometheus-exporter-5.6.2.0.zip
 # RUN elasticsearch-plugin install mobz/elasticsearch-head
 
+# https://github.com/vvanholl/elasticsearch-prometheus-exporter/archive/5.6.2.0.zip
+
 # Site Plugins
 #   install_plugin 'lukas-vlcek/bigdesk'
 #   install_plugin 'mobz/elasticsearch-head'
