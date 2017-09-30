@@ -1,4 +1,4 @@
-version: '3'
+version: '3.3'
 
 # source: https://botleg.com/stories/monitoring-docker-swarm-with-cadvisor-influxdb-and-grafana/
 
@@ -92,6 +92,9 @@ services:
     # service will be run in each node of the swarm.
     deploy:
       mode: global
+      resources:
+        limits:
+          memory: 80M
       restart_policy:
         condition: on-failure
         delay: 60s
@@ -135,41 +138,41 @@ services:
           cpus: '0.10'
           memory: 16M
 
-  alertmanager:
-    image: prom/alertmanager
-    networks:
-      - monitoring
-      - default
-    expose:
-      - 9193
-    ports:
-      - "9193:9193"
-    volumes:
-      - ./alertmanager/:/etc/alertmanager/
-    depends_on:
-      - configuration_manager
-    command:
-      - '-config.file=/etc/alertmanager/config.yml'
-      - '-storage.path=/alertmanager'
-    # source: https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/#replicated-and-global-services
-    # There are two types of service deployments, replicated and global.
-    # For a replicated service, you specify the number of identical tasks you want to run.
-    # For example, you decide to deploy an HTTP service with three replicas, each serving the same content.
-    deploy:
-      replicas: 1
-      restart_policy:
-          condition: on-failure
-          delay: 60s
-      placement:
-        constraints:
-          - node.role == manager
-      resources:
-        limits:
-          cpus: '0.01'
-          memory: 32M
-        reservations:
-          cpus: '0.01'
-          memory: 16M
+  # alertmanager:
+  #   image: prom/alertmanager
+  #   networks:
+  #     - monitoring
+  #     - default
+  #   expose:
+  #     - 9193
+  #   ports:
+  #     - "9193:9193"
+  #   volumes:
+  #     - ./alertmanager/:/etc/alertmanager/
+  #   depends_on:
+  #     - configuration_manager
+  #   command:
+  #     - '-config.file=/etc/alertmanager/config.yml'
+  #     - '-storage.path=/alertmanager'
+  #   # source: https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/#replicated-and-global-services
+  #   # There are two types of service deployments, replicated and global.
+  #   # For a replicated service, you specify the number of identical tasks you want to run.
+  #   # For example, you decide to deploy an HTTP service with three replicas, each serving the same content.
+  #   deploy:
+  #     replicas: 1
+  #     restart_policy:
+  #         condition: on-failure
+  #         delay: 60s
+  #     placement:
+  #       constraints:
+  #         - node.role == manager
+  #     resources:
+  #       limits:
+  #         cpus: '0.01'
+  #         memory: 32M
+  #       reservations:
+  #         cpus: '0.01'
+  #         memory: 16M
 
 # docker run -d
 #     --restart=always
@@ -185,6 +188,17 @@ services:
 # global:
 #   smtp_from: 'alertmanager@tonydark.lan'
 #   smtp_smarthost: '172.17.0.1:587'
+
+# FIXME: 9/29/2017 YOU NEED TO BE USING THIS!!!!!!!!!
+# source: https://medium.com/@basi/docker-swarm-metrics-in-prometheus-e02a6a5745a
+# docker \
+#   service create \
+#   --mode global \
+#   --name docker-exporter \
+#   --network monitoring \
+#   --publish 4999 \
+#   -e IN=172.18.0.1:4999 \
+#   basi/socat:v0.1.0
 
   # Get metrics about the actual docker daemon
   docker-exporter:
@@ -203,6 +217,18 @@ services:
         reservations:
           cpus: '0.05'
           memory: 4M
+
+  # source: https://github.com/chmod666org/docker-swarm-prometheus/blob/master/configs/blackbox.yml
+  # # blackbox-exporter
+  # blackbox-exporter:
+  #   image: prom/blackbox-exporter
+  #   command: '--config.file=/config/blackbox.yml --log.level=debug'
+  #   networks:
+  #     - monitoring
+  #     - default
+  #   configs:
+  #     - source: blackbox.yml
+  #       target: /config/blackbox.yml
 
   prometheus:
     image: prom/prometheus
