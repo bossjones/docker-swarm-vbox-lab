@@ -238,6 +238,7 @@ deploy-monitoring:
 	@bash ./scripts/create-influx-db.sh
 	@bash ./scripts/create-grafana.sh
 
+deploy-viz: install-viz
 
 create-influx:
 	@bash ./scripts/create-influx-db.sh
