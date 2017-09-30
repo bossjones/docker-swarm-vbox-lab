@@ -13,7 +13,8 @@ ifeq ($(TAG),@branch)
 endif
 
 build:
-	docker build --tag $(username)/$(container_name):latest . ; \
+	docker build --tag $(username)/$(container_name):GIT_SHA . ; \
+	docker tag $(username)/$(container_name):$(GIT_SHA) $(username)/$(container_name):latest
 	docker tag $(username)/$(container_name):$(GIT_SHA) $(username)/$(container_name):$(TAG)
 
 build-force:
