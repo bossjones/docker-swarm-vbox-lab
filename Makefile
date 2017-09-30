@@ -358,6 +358,9 @@ create-grafana:
 es-create-index:
 	@bash ./scripts/es-create-index.sh
 
+scan-with-nmap:
+	@bash ./scripts/scan-with-nmap.sh
+
 create-elasticsearch-index: es-create-index
 
 stop-logging:
