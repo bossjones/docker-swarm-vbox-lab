@@ -37,7 +37,7 @@ services:
       - default
       - monitor_monitoring
     environment:
-      ES_JAVA_OPTS: '-Xms256m -Xmx256m'
+      ES_JAVA_OPTS: '-Xms256m -Xmx256m -Xms512m -Xmx512m'
       # NOTE: https://www.elastic.co/products/x-pack
       # Security for elasticsearch
       # For this demo, we will disable the X-Pack.
