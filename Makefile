@@ -288,6 +288,12 @@ ps-nginx-containers:
 ps-logging-containers:
 	@docker stack ps elk
 
+open-influxdb:
+	@bash ./scripts/open-influxdb.sh
+
+open-cadvisor:
+	@bash ./scripts/open-cadvisor.sh
+
 open-grafana:
 	@bash ./scripts/open-grafana.sh
 
@@ -318,7 +324,12 @@ open-seagull:
 open-kibana:
 	@bash ./scripts/open-kibana.sh
 
+open-node-exporter:
+	@bash ./scripts/open-node-exporter.sh
+
 open: open-prometheus open-viz open-portainer open-nginx open-logstash open-grafana open-kibana
+
+open-monitoring: open-influxdb open-grafana open-cadvisor open-node-exporter
 
 dm-start-all:
 	docker-machine start local

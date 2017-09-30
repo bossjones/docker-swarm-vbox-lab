@@ -153,6 +153,7 @@ services:
       - monitor_monitoring
     # The router mesh feature will then let us access
     # kibana from port 8088 of any host in the swarm.
+    # FIXME: 8088, this needs to get change cause it is the same as influxdb!!!!
     ports:
       - '8088:5601'
     depends_on:

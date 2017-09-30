@@ -23,7 +23,7 @@ AddDataSourceCadvisor() {
     -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
     --data-binary \
-    '{"name":"influx","type":"InfluxDB","url":"http://influx:8086","access":"proxy","isDefault":true,"database":"cadvisor"}'
+    '{"name":"influx","type":"influxdb","url":"http://influx:8086","access":"proxy","isDefault":true,"database":"cadvisor"}'
 }
 
 AddDataSourcePrometheus() {

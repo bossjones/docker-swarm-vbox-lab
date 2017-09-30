@@ -22,8 +22,16 @@ services:
     # source: https://github.com/ehazlett/interlock/blob/master/vendor/github.com/influxdata/influxdb/Dockerfile
     # admin, http, udp, cluster, graphite, opentsdb, collectd
     # EXPOSE 8083 8086 8086/udp 8088 2003 4242 25826
+    expose:
+      - 8083
+      - 8086
+      - 8088
+      - 2003
     ports:
+      - '8083:8083'
       - '8086:8086'
+      - '8088:8088'
+      - '2003:2003'
     image: influxdb
     networks:
       - monitoring
@@ -207,13 +215,13 @@ services:
       - monitoring
       - default
     ports:
-      - '4998:4999'
+      - '4999:4999'
     deploy:
       mode: global
       resources:
         limits:
           cpus: '0.05'
-          memory: 6M
+          memory: 50M
         reservations:
           cpus: '0.05'
           memory: 4M
