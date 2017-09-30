@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-open http://`docker-machine ip swarm-manager`
+open http://`docker-machine ip swarm-manager`:3000

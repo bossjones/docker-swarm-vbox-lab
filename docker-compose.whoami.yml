@@ -6,12 +6,14 @@ networks:
       name: monitor_monitoring
 
 services:
-  nginx:
-    image: hanzel/nginx-html
+  whoami:
+    image: emilevauge/whoami
     networks:
       - default
       - monitor_monitoring
+    expose:
+      - '7001'
     ports:
-      - "8888:80"
+      - '7001:80'
     deploy:
-      replicas: 5
+      mode: global

@@ -1,12 +1,55 @@
 # docker-swarm-vbox-lab
 lab to try out using docker swarm on virtualized environment using vagrant
 
+# Lots of influence from
+- https://github.com/deviantony/docker-elk
+
+# Stack Overview( All using docker-swarm )
+- Prometheus Server
+- Prometheus Alertmanager
+- Node Exporter
+- Portainer
+- Grafana
+- Nginx reverse proxy with SSL/TLS [Let's encrypt certificate](https://letsencrypt.org/)
+- ELK stack ( Elasticsearch, Logstash, Kibana )
+
+# Future ( Fun things to try to get working )
+- StackStorm [Event-driven automation](https://github.com/StackStorm/st2-docker)
+- Bro IDS
+- Redis/Zmq/RabbitMq ( Some sort of queue solution )
+- zq [Kafka-based Job Queue for Python ](https://github.com/joowani/kq)
+- etcd: [Distributed reliable key-value store for the most critical data of a distributed system](https://github.com/coreos/etcd)
+- faas: [Functions as a Service (OpenFaaS)](https://github.com/alexellis/faas)
+- opentracing: [distributed tracing and context propagation](https://github.com/opentracing)
+- Zipkin
+- Jaegar
+- locustio
+- Loki: [Simple, Distributed Tracing](https://github.com/weaveworks-experiments/loki)
+- Vizceral: [WebGL visualization for displaying animated traffic graphs](https://github.com/Netflix/vizceral)
+- [Vizceral Example](https://github.com/Netflix/vizceral-example)
+- Jenkins: [For automation of tasks](https://github.com/jenkinsci/docker)
+- Vault: [hashicorp secret management](https://github.com/hashicorp/docker-vault)
+- [Augmented Traffic Control:](https://github.com/facebook/augmented-traffic-control)
+- Facebook Osquery: [SQL powered operating system instrumentation, monitoring, and analytics.](https://github.com/kolide/docker-osquery/blob/master/ubuntu16-osquery/Dockerfile)
+- Hubble: [Security compliance framework](https://github.com/hubblestack/hubble-salt)
+- doorman: [osquery fleet manager](https://github.com/mwielgoszewski/doorman)
+- ChaosMonkey: [resiliency tool that helps applications tolerate random instance failures](https://github.com/netflix/chaosmonkey)
+- git-server-docker: [Git Server in Docker](https://github.com/jkarlosb/git-server-docker)
+- gitlab-ce: [GitLab Community Edition docker image based on the Omnibus package](https://hub.docker.com/r/gitlab/gitlab-ce/)
 # Research:
 
 - https://www-public.tem-tsp.eu/~berger_o/docker/install-docker-machine-virtualbox.html
 - https://unix.stackexchange.com/questions/269912/send-command-to-the-shell-via-makefile
 - https://docs.docker.com/get-started/part3/
 - https://stackoverflow.com/questions/7897549/make-ignores-my-python-bash-alias
+- https://botleg.com/stories/monitoring-docker-swarm-with-cadvisor-influxdb-and-grafana/
+- https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.logging.yml
+
+# Recover after swarm reboot
+- https://forums.docker.com/t/docker-worker-nodes-shown-as-down-after-re-start/22329/2
+- https://github.com/moby/moby/issues/23828
+- https://docs.docker.com/engine/swarm/admin_guide/#monitor-swarm-health
+- https://docs.docker.com/engine/swarm/admin_guide/#run-manager-only-nodes
 
 #
 
@@ -280,3 +323,64 @@ To github.com:bossjones/docker-swarm-vbox-lab.git
 Borrowed from https://github.com/botleg/swarm-monitoring !
 
 Source: https://github.com/botleg/swarm-monitoring/blob/master/dashboard.json
+
+# Prometheus
+
+Borrowed from https://github.com/vegasbrianc/prometheus
+
+# SSL configuration example
+
+- https://github.com/danguita/prometheus-monitoring-stack
+
+# SMTP server for alertmanager
+
+- https://hub.docker.com/r/marvambass/versatile-postfix/
+
+# networking external example
+
+- https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.logging.yml
+
+# networking on swarm classic
+
+- [Multi-host networking with standalone swarms](https://docs.docker.com/engine/userguide/networking/overlay-standalone-swarm/)
+
+# Install Grafana Plugins ( grafana-cli admin )
+- http://docs.grafana.org/plugins/installation/
+- http://docs.grafana.org/administration/cli/
+
+# Consul setup and config
+- https://medium.com/zendesk-engineering/making-docker-and-consul-get-along-5fceda1d52b9
+- https://www.consul.io/docs/guides/consul-containers.html
+- https://blog.octo.com/en/how-does-it-work-docker-part-1-swarm-general-architecture/
+
+
+# Networking problems
+- https://github.com/docker/compose/issues/2908
+- https://docs.docker.com/v17.06/compose/compose-file/#external-1
+
+Example: In the example below, proxy is the gateway to the outside world. Instead of attempting to create a network called [projectname]_outside, Compose will look for an existing network simply called outside and connect the proxy service’s containers to it.
+
+```
+version: '2'
+
+services:
+  proxy:
+    build: ./proxy
+    networks:
+      - outside
+      - default
+  app:
+    build: ./app
+    networks:
+      - default
+
+networks:
+  outside:
+    external: true
+```
+
+- https://blog.octo.com/en/how-does-it-work-docker-part-3-load-balancing-service-discovery-and-security/
+
+- LOOK AT ME: Service is not DNS resolvable from another one if containers run on different nodes https://github.com/docker/swarmkit/issues/1429
+
+- https://github.com/docker/swarmkit/issues/1716

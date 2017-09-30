@@ -70,3 +70,7 @@ bin/docker-compose-x86_64
 bin/docker-machine-x86_64
 dm-local-env
 data/
+
+# don't need to save this
+config.prometheus
+.env

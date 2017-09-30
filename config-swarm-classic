@@ -1,0 +1,3 @@
+# Multi-host networking with standalone swarms
+# source: https://docs.docker.com/engine/userguide/networking/overlay-standalone-swarm/
+export swarm_hosts=(local mh-keystore swarm-manager node-01 node-02 node-03)

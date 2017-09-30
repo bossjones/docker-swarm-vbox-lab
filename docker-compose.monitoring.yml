@@ -2,9 +2,40 @@ version: '3'
 
 # source: https://botleg.com/stories/monitoring-docker-swarm-with-cadvisor-influxdb-and-grafana/
 
+volumes:
+  influx:
+    driver: local
+  grafana:
+    driver: local
+  prometheus_data:
+    driver: local
+
+# networks:
+#   front-tier:
+#   back-tier:
+
+networks:
+  monitoring:
+
 services:
   influx:
+    # source: https://github.com/ehazlett/interlock/blob/master/vendor/github.com/influxdata/influxdb/Dockerfile
+    # admin, http, udp, cluster, graphite, opentsdb, collectd
+    # EXPOSE 8083 8086 8086/udp 8088 2003 4242 25826
+    expose:
+      - 8083
+      - 8086
+      - 8088
+      - 2003
+    ports:
+      - '8083:8083'
+      - '8086:8086'
+      - '8088:8088'
+      - '2003:2003'
     image: influxdb
+    networks:
+      - monitoring
+      - default
     volumes:
       - influx:/var/lib/influxdb
     deploy:
@@ -15,20 +46,40 @@ services:
 
   grafana:
     image: grafana/grafana
+    networks:
+      - monitoring
+      - default
     ports:
-      - 0.0.0.0:80:3000
+      - "3000:3000"
+    env_file:
+      - config.monitoring
     volumes:
       - grafana:/var/lib/grafana
     depends_on:
       - influx
+      # - prometheus
     deploy:
       replicas: 1
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 64M
+        reservations:
+          cpus: '0.50'
+          memory: 32M
 
   cadvisor:
-    image: google/cadvisor
+    # NOTE: Using patched cadvisor due to bug w/ -printf on busybox ( boot2docker )
+    # source: https://hub.docker.com/r/blep/cadvisor_bugfix1556/
+    # issue: https://github.com/google/cadvisor/issues/1556
+    # image: google/cadvisor
+    image: blep/cadvisor_bugfix1556:latest
+    networks:
+      - monitoring
+      - default
     # NOTE: Create services using templates
     # source: https://docs.docker.com/engine/reference/commandline/service_create/#create-services-using-templates
     hostname: '{{.Node.ID}}'
@@ -38,6 +89,10 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+    expose:
+      - 8080
+    ports:
+      - '8080:8080'
     depends_on:
       - influx
     # NOTE: We use the mode global for deploy in cadvisor service.
@@ -45,9 +100,322 @@ services:
     # service will be run in each node of the swarm.
     deploy:
       mode: global
+      resources:
+        limits:
+          memory: 80M
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      # source: https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.yml
+      # resources:
+      #   limits:
+      #     cpus: '0.10'
+      #     memory: 128M
+      #   reservations:
+      #     cpus: '0.10'
+      #     memory: 64M
 
-volumes:
-  influx:
-    driver: local
-  grafana:
-    driver: local
+  node-exporter:
+    image: prom/node-exporter
+    networks:
+      - monitoring
+      - default
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: '-collector.procfs=/host/proc -collector.sysfs=/host/sys -collector.filesystem.ignored-mount-points="^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)" collector.filesystem.ignored-fs-types="^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"'
+    expose:
+      - 9100
+    ports:
+      - '9100:9100'
+    hostname: "{{.Node.ID}}"
+    environment:
+      HOST_HOSTNAME: /etc/host_hostname
+    deploy:
+      # source: https://github.com/bvis/docker-prometheus-swarm/blob/master/docker-compose.yml
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 32M
+        reservations:
+          cpus: '0.10'
+          memory: 16M
+
+  # alertmanager:
+  #   image: prom/alertmanager
+  #   networks:
+  #     - monitoring
+  #     - default
+  #   expose:
+  #     - 9193
+  #   ports:
+  #     - "9193:9193"
+  #   volumes:
+  #     - ./alertmanager/:/etc/alertmanager/
+  #   depends_on:
+  #     - configuration_manager
+  #   command:
+  #     - '-config.file=/etc/alertmanager/config.yml'
+  #     - '-storage.path=/alertmanager'
+  #   # source: https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/#replicated-and-global-services
+  #   # There are two types of service deployments, replicated and global.
+  #   # For a replicated service, you specify the number of identical tasks you want to run.
+  #   # For example, you decide to deploy an HTTP service with three replicas, each serving the same content.
+  #   deploy:
+  #     replicas: 1
+  #     restart_policy:
+  #         condition: on-failure
+  #         delay: 60s
+  #     placement:
+  #       constraints:
+  #         - node.role == manager
+  #     resources:
+  #       limits:
+  #         cpus: '0.01'
+  #         memory: 32M
+  #       reservations:
+  #         cpus: '0.01'
+  #         memory: 16M
+
+# docker run -d
+#     --restart=always
+#     -v "/etc/ssl/certs:/etc/ssl/certs:ro"
+#     -v "/etc/ssl/private:/etc/ssl/private:ro"
+#     -v "/usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro"
+#     -e SMTP_AUTH_USERNAME=username
+#     -e SMTP_AUTH_PASSWORD=password
+#     --name alertmanager
+#     prom/alertmanager
+#     -config.file=/alertmanager.yml
+
+# global:
+#   smtp_from: 'alertmanager@tonydark.lan'
+#   smtp_smarthost: '172.17.0.1:587'
+
+# FIXME: 9/29/2017 YOU NEED TO BE USING THIS!!!!!!!!!
+# source: https://medium.com/@basi/docker-swarm-metrics-in-prometheus-e02a6a5745a
+# docker \
+#   service create \
+#   --mode global \
+#   --name docker-exporter \
+#   --network monitoring \
+#   --publish 4999 \
+#   -e IN=172.18.0.1:4999 \
+#   basi/socat:v0.1.0
+
+  # Get metrics about the actual docker daemon
+  docker-exporter:
+    image: basi/socat:${DOCKER_EXPORTER_VERSION:-v0.1.0}
+    networks:
+      - monitoring
+      - default
+    ports:
+      - '4999:4999'
+    deploy:
+      mode: global
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 50M
+        reservations:
+          cpus: '0.05'
+          memory: 4M
+
+  # source: https://github.com/chmod666org/docker-swarm-prometheus/blob/master/configs/blackbox.yml
+  # # blackbox-exporter
+  # blackbox-exporter:
+  #   image: prom/blackbox-exporter
+  #   command: '--config.file=/config/blackbox.yml --log.level=debug'
+  #   networks:
+  #     - monitoring
+  #     - default
+  #   configs:
+  #     - source: blackbox.yml
+  #       target: /config/blackbox.yml
+
+  prometheus:
+    image: prom/prometheus
+    networks:
+      - monitoring
+      - default
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '-config.file=/etc/prometheus/prometheus.yml'
+      - '-storage.local.path=/prometheus'
+      # DISABLED # - '-alertmanager.url=http://alertmanager:9193'
+      - '-web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '-web.console.templates=/usr/share/prometheus/consoles'
+    expose:
+      - 9090
+    ports:
+      - "0.0.0.0:9090:9090"
+    depends_on:
+      - cadvisor
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1024M
+        reservations:
+          cpus: '0.50'
+          memory: 128M
+
+  # How to use environment variables in docker compose
+  # source: https://stackoverflow.com/questions/29377853/how-to-use-environment-variables-in-docker-compose
+  # source: https://github.com/danguita/prometheus-monitoring-stack/blob/master/docker-compose.yml
+  configuration_manager:
+    image: busybox
+    networks:
+      - monitoring
+      - default
+    # env_file:
+    # - config.prometheus
+    env_file: .env
+    environment:
+      - ALERT_SLACK_USERNAME
+      - ALERT_SLACK_CHANNEL
+      - ALERT_SLACK_INCOMING_WEBHOOK_URL
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
+    volumes:
+      - ./config:/config
+      - ./config.prometheus:/config.prometheus
+      - ./scripts/write-alertmanager-config.sh:/scripts/write-alertmanager-config.sh
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - sed "s,ALERT_SLACK_USERNAME,${ALERT_SLACK_USERNAME},g;
+             s,ALERT_SLACK_CHANNEL,${ALERT_SLACK_CHANNEL},g;
+             s,ALERT_SLACK_INCOMING_WEBHOOK_URL,${ALERT_SLACK_INCOMING_WEBHOOK_URL},g"
+             /config/alertmanager.template.yml > /config/alertmanager.yml; cat /config/alertmanager.yml
+
+  # TODO: Try this asap
+  # nginx-proxy:
+  #   image: jwilder/nginx-proxy
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - /var/run/docker.sock:/tmp/docker.sock:ro
+
+# ------------------------------------------------------------------------------------
+# TODO: Try this!
+# ------------------------------------------------------------------------------------
+#     ssl:
+#         image: opencapacity/lets-nginx:1.3
+#         environment:
+#             - EMAIL=webmaster@opencapacity.co
+#             - DOMAIN=test.opencapacity.co
+#             - UPSTREAM=grafana:3000
+#         ports:
+#             - "443:443"
+#         volumes:
+#             - letsencrypt:/etc/letsencrypt
+#             - letsencrypt_backups:/var/lib/letsencrypt
+#             - dhparam_cache:/cache
+#         depends_on:
+#             - grafana
+# volumes:
+#     prometheus_data: {}
+#     grafana_data: {}
+#     letsencrypt: {}
+#     letsencrypt_backups: {}
+#     dhparam_cache: {}
+# ------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------
+
+  # source: https://github.com/ecozoic/mern-starter/blob/20ddcc4453fecf80cac3e7b703d1f0382dcba43a/docker-compose.yml
+  # portainer:
+  #   image: portainer/portainer
+  #   container_name: portainer
+  #   command: --no-auth
+  #   ports:
+  #     - 9000:9000
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - data_portainer:/data
+
+
+# ------------------------------------------------------------------------------------
+
+# source: https://github.com/btyh17mxy/portainerNodeMonitor/blob/d7b5799c352f71cc97cae0047768868b494d17b7/docker-compose-example.yml
+# version: "3"
+# services:
+
+#   portainer:
+#     image: portainer/portainer
+#     ports:
+#       - "9000:9000"
+#     stop_grace_period: 1m30s
+#     volumes:
+#       - endpoints:/etc/endpoints
+#       - /var/run/docker.sock:/var/run/docker.sock
+#     command: ['--external-endpoints', '/etc/endpoints/endpoints.json']
+#     depends_on:
+#       - node-monitor
+#     deploy:
+#       placement:
+#         constraints: [node.role == manager]
+#   node-monitor:
+#     image: btyh17mxy/portainernodemonitor
+#     volumes:
+#       - endpoints:/etc/endpoints
+#       - /var/run/docker.sock:/var/run/docker.sock
+#     deploy:
+#       placement:
+#         constraints: [node.role == manager]
+# volumes:
+#   endpoints:
+
+
+# --------------------------------------------------------------------------------
+
+# source: https://github.com/vegasbrianc/docker-traefik-prometheus/blob/master/docker-compose.yml
+
+#   traefik:
+#     image: traefik
+#     command: --web --web.metrics.prometheus --web.metrics.prometheus.buckets="0.1,0.3,1.2,5.0" --docker --docker.domain=docker.localhost --logLevel=DEBUG
+#     networks:
+#       - prometheus
+#     ports:
+#       - "80:80"
+#       - "8080:8080"
+#     volumes:
+#       - /var/run/docker.sock:/var/run/docker.sock
+
+# networks:
+#  prometheus:
+#    external:
+#      name: dockerprometheus_back-tier
+
+# # source: https://github.com/danguita/prometheus-monitoring-stack/blob/master/docker-compose.yml#L4
+  # frontend:
+  #   image: smashwilson/lets-nginx
+  #   env_file: .env
+  #   environment:
+  #     - UPSTREAM=grafana:3000
+  #   volumes:
+  #     - letsencrypt:/etc/letsencrypt
+  #     - letsencrypt_backups:/var/lib/letsencrypt
+  #     - dhparam_cache:/cache
+  #   ports:
+  #     - "443:443"
+  #   links:
+  #     - grafana
