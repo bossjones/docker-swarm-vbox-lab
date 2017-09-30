@@ -22,7 +22,7 @@ bootstrap-swarm-local:
 # NOTE: Based on
 # http://perica.zivkovic.nl/blog/setup-docker-swarm-with-docker-machine-do/
 bootstrap-swarm:
-	$(DM) create -d virtualbox swarm-manager
+	$(DM) create -d virtualbox --virtualbox-memory 4096 --virtualbox-cpu-count 2 swarm-manager
 	$(DM) create -d virtualbox node-01
 	$(DM) create -d virtualbox node-02
 	$(DM) create -d virtualbox node-03
@@ -73,6 +73,14 @@ docker-clean:
 env-dm-local:
 	echo $$(./bin/docker-machine-x86_64 env local) > ./dm-local-env
 	@echo "Run this command to configure your shell: # source ./dm-local-env"
+
+deploy-consul:
+	docker run -d \
+	--name consul \
+	-p "8500:8500" \
+	-h "consul" \
+	--rm \
+	consul agent -server -bootstrap
 
 dvm-use:
 	dvm use $(DOCKER_VERSION)
@@ -304,6 +312,13 @@ open-kibana:
 	@bash ./scripts/open-kibana.sh
 
 open: open-prometheus open-viz open-portainer open-nginx open-logstash open-grafana open-kibana
+
+dm-start-all:
+	docker-machine start local
+	docker-machine start swarm-manager
+	docker-machine start node-01
+	docker-machine start node-02
+	docker-machine start node-03
 
 dm-stop-all:
 	docker-machine stop local

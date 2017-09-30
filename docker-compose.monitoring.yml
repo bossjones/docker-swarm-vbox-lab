@@ -19,8 +19,11 @@ networks:
 
 services:
   influx:
+    # source: https://github.com/ehazlett/interlock/blob/master/vendor/github.com/influxdata/influxdb/Dockerfile
+    # admin, http, udp, cluster, graphite, opentsdb, collectd
+    # EXPOSE 8083 8086 8086/udp 8088 2003 4242 25826
     ports:
-    - '8086:8086'
+      - '8086:8086'
     image: influxdb
     networks:
       - monitoring

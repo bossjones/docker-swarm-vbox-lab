@@ -343,3 +343,12 @@ Borrowed from https://github.com/vegasbrianc/prometheus
 # networking on swarm classic
 
 - [Multi-host networking with standalone swarms](https://docs.docker.com/engine/userguide/networking/overlay-standalone-swarm/)
+
+# Install Grafana Plugins ( grafana-cli admin )
+- http://docs.grafana.org/plugins/installation/
+- http://docs.grafana.org/administration/cli/
+
+# Consul setup and config
+- https://medium.com/zendesk-engineering/making-docker-and-consul-get-along-5fceda1d52b9
+- https://www.consul.io/docs/guides/consul-containers.html
+- https://blog.octo.com/en/how-does-it-work-docker-part-1-swarm-general-architecture/
