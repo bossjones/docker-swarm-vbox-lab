@@ -18,10 +18,13 @@ build:
 	docker tag $(username)/$(container_name):$(GIT_SHA) $(username)/$(container_name):$(TAG)
 
 build-force:
-	docker build --rm --force-rm --pull --no-cache -t $(username)/$(container_name):latest .
+	docker build --rm --force-rm --pull --no-cache -t $(username)/$(container_name):$(GIT_SHA) . ; \
+	docker tag $(username)/$(container_name):$(GIT_SHA) $(username)/$(container_name):latest
+	docker tag $(username)/$(container_name):$(GIT_SHA) $(username)/$(container_name):$(TAG)
 
 tag:
-	docker tag $(username)/$(container_name):latest $(username)/$(container_name):latest
+	docker tag $(username)/$(container_name):$(GIT_SHA) $(username)/$(container_name):latest
+	docker tag $(username)/$(container_name):$(GIT_SHA) $(username)/$(container_name):$(TAG)
 
 build-push: build tag
 	docker push $(username)/$(container_name):latest
