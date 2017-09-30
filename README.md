@@ -384,3 +384,4 @@ networks:
 - LOOK AT ME: Service is not DNS resolvable from another one if containers run on different nodes https://github.com/docker/swarmkit/issues/1429
 
 - https://github.com/docker/swarmkit/issues/1716
+- https://github.com/nlandolfi/mixer/blob/75ecdd0ad2959b0088ea75810ed1755b83e74490/deploy/kube/conf/import_dashboard.sh
