@@ -231,7 +231,7 @@ dockviz-image-tree-incremental:
 # This might take some time the first time as the nodes have
 # to download the images.
 # Also, you need to create the database named cadvisor in InfluxDB to store the metrics.
-deploy-monitoring:
+deploy-monitoring: create-grafana
 	@docker stack deploy -c docker-compose.monitoring.yml monitor
 	sleep 60
 	@bash ./scripts/create-influx-db.sh
@@ -327,6 +327,9 @@ dm-stop-all:
 	docker-machine stop node-01
 	docker-machine stop node-02
 	docker-machine stop node-03
+
+create-grafana:
+	@bash ./scripts/create-grafana.sh
 
 es-create-index:
 	@bash ./scripts/es-create-index.sh

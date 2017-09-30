@@ -7,7 +7,7 @@ _GRAFANA_IP=$(docker-machine ip swarm-manager)
 
 
 AddDataSourceCadvisor() {
-  curl "http://${_GRAFANA_IP}:3000/api/datasources" \
+  curl "http://admin:admin@${_GRAFANA_IP}:3000/api/datasources" \
     -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
     --data-binary \
@@ -15,7 +15,7 @@ AddDataSourceCadvisor() {
 }
 
 AddDataSourcePrometheus() {
-  curl "http://${_GRAFANA_IP}:3000/api/datasources" \
+  curl "http://admin:admin@${_GRAFANA_IP}:3000/api/datasources" \
     -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
     --data-binary \
