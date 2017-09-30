@@ -346,6 +346,9 @@ open-logging: open-kibana open-elasticsearch open-head-plugin open-elasticsearch
 open-elasticsearch-metrics:
 	@bash ./script/open-elasticsearch-metrics.sh
 
+direnv-rc:
+	direnv allow .
+
 dm-start-all:
 	docker-machine start local
 	docker-machine start swarm-manager
