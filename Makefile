@@ -344,7 +344,7 @@ open-logging: open-kibana open-elasticsearch open-head-plugin open-elasticsearch
 # source: https://github.com/vvanholl/elasticsearch-prometheus-exporter
 # http://<your_server_address>:9200/_prometheus/metrics
 open-elasticsearch-metrics:
-	@bash ./script/open-elasticsearch-metrics.sh
+	@bash ./scripts/open-elasticsearch-metrics.sh
 
 direnv-rc:
 	direnv allow .
