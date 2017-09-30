@@ -47,7 +47,7 @@
                     {
                         "aliasColors": {},
                         "bars": false,
-                        "datasource": "${Prometheus}",
+                        "datasource": "Prometheus",
                         "editable": true,
                         "error": false,
                         "fill": 1,
@@ -136,7 +136,7 @@
                             "ALERTS{alertname=\"high_load\",alertstate=\"firing\",instance=\"node-exporter:9100\",job=\"prometheus\"}": "#BF1B00"
                         },
                         "bars": false,
-                        "datasource": "${Prometheus}",
+                        "datasource": "Prometheus",
                         "editable": true,
                         "error": false,
                         "fill": 1,
