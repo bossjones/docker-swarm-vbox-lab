@@ -25,9 +25,12 @@ tag:
 
 build-push: build tag
 	docker push $(username)/$(container_name):latest
+	docker push $(username)/$(container_name):$(GIT_SHA)
+	docker push $(username)/$(container_name):$(TAG)
 
 push:
 	docker push $(username)/$(container_name):latest
+	docker push $(username)/$(container_name):$(GIT_SHA)
 	docker push $(username)/$(container_name):$(TAG)
 
 push-force: build-force push
