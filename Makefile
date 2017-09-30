@@ -336,6 +336,8 @@ open: open-prometheus open-viz open-portainer open-nginx open-logstash open-graf
 
 open-monitoring: open-influxdb open-grafana open-cadvisor open-node-exporter
 
+open-logging: open-kibana open-elasticsearch
+
 dm-start-all:
 	docker-machine start local
 	docker-machine start swarm-manager
@@ -355,6 +357,8 @@ create-grafana:
 
 es-create-index:
 	@bash ./scripts/es-create-index.sh
+
+create-elasticsearch-index: es-create-index
 
 stop-logging:
 	docker stack rm elk

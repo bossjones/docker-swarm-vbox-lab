@@ -29,7 +29,6 @@ services:
       - '9200:9200'
       - '9300:9300'
     networks:
-      # - logging
       - default
       - monitor_monitoring
     environment:
@@ -43,8 +42,25 @@ services:
       xpack.watcher.enabled: 'false'
     volumes:
       - esdata:/usr/share/elasticsearch/data
+    # TODO: Enable this
+    # ulimits:
+    #   memlock:
+    #     soft: -1
+    #     hard: -1
+    #   nofile:
+    #     soft: 65536
+    #     hard: 65536
+    # cap_add:
+    #   - IPC_LOCK
     deploy:
       replicas: 1
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
       placement:
         constraints:
           - node.hostname == node-01
@@ -53,7 +69,6 @@ services:
     # image: docker.elastic.co/logstash/logstash:5.3.2
     image: docker.elastic.co/logstash/logstash:5.6.1
     networks:
-      # - logging
       - default
       - monitor_monitoring
     # ----------------------------------------------------
@@ -95,8 +110,10 @@ services:
     # NOTE: # The port to listen on for filebeat connections. port => 5044
     # ----------------------------------------------------
     ports:
-      - '127.0.0.1:5044:5044'
-      - '127.0.0.1:9600:9600'
+      # - '127.0.0.1:5044:5044'
+      # - '127.0.0.1:9600:9600'
+      - '5044:5044'
+      - '9600:9600'
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
       # NOTE: Enable JMX Remote
@@ -107,55 +124,66 @@ services:
       - elasticsearch
     deploy:
       replicas: 1
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '.5'
+          memory: 256M
+      update_config:
+        parallelism: 1
+        delay: 30s
       placement:
         constraints:
           - node.hostname == node-02
 
-  # logspout:
-  #   image: bekt/logspout-logstash
-  #   networks:
-  #     # - default
-  #     # - logging
-  #     - monitor_monitoring
-  #   environment:
-  #     ROUTE_URIS: 'logstash://logstash:5000'
-  #     DOCKER_LABELS: "true"
-  #   ports:
-  #     - '0.0.0.0:8000:80'
-  #   # We also need to create a volume for the Docker socket,
-  #   # /var/run/docker.sock.
-  #   # This lets the container to attach to the docker daemon
-  #   # in the host and collect all the logs.
-  #   volumes:
-  #     - '/var/run/docker.sock:/var/run/docker.sock'
-  #   depends_on:
-  #     - logstash
-  #   deploy:
-  #     mode: global
-  #     restart_policy:
-  #       condition: on-failure
-  #       delay: 60s
-  #     resources:
-  #       limits:
-  #         cpus: '0.25'
-  #         memory: 64M
-  #       reservations:
-  #         cpus: '0.25'
-  #         memory: 32M
+  logspout:
+    image: bekt/logspout-logstash
+    networks:
+      - default
+      - monitor_monitoring
+    environment:
+      ROUTE_URIS: 'logstash://logstash:5000'
+      DOCKER_LABELS: "true"
+    expose:
+      - 8000
+    ports:
+      - '0.0.0.0:8000:80'
+    # We also need to create a volume for the Docker socket,
+    # /var/run/docker.sock.
+    # This lets the container to attach to the docker daemon
+    # in the host and collect all the logs.
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    depends_on:
+      - logstash
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+        reservations:
+          cpus: '0.25'
+          memory: 32M
 
 
   kibana:
     # image: docker.elastic.co/kibana/kibana:5.3.2
     image: docker.elastic.co/kibana/kibana:5.6.1
     networks:
-      # - logging
       - default
       - monitor_monitoring
     # The router mesh feature will then let us access
     # kibana from port 8088 of any host in the swarm.
-    # FIXME: 8088, this needs to get change cause it is the same as influxdb!!!!
+    expose:
+      - 5601
     ports:
-      - '8088:5601'
+      - '5601:5601'
     depends_on:
       - elasticsearch
     environment:
@@ -164,6 +192,20 @@ services:
       XPACK_MONITORING_ENABLED: 'false'
     deploy:
       replicas: 1
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
       placement:
         constraints:
           - node.hostname == node-03
+  #     resources:
+  #       limits:
+  #         cpus: '0.25'
+  #         memory: 64M
+  #       reservations:
+  #         cpus: '0.25'
+  #         memory: 32M
