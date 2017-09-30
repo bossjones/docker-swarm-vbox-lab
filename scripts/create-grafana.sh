@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
 
+set -e
+
+_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 # source: https://github.com/grafana/grafana/issues/1789
 # source: https://github.com/grafana/grafana/issues/1789#issuecomment-248309442
 
 _GRAFANA_IP=$(docker-machine ip swarm-manager)
 
+# source: https://stackoverflow.com/questions/31166932/create-grafana-dashboards-with-api
+InstallDashboards() {
+  curl -XPOST -i "http://admin:admin@${_GRAFANA_IP}:3000/api/dashboards/db" \
+   --data-binary @${_DIR}/../dashboards/System_Monitoring.json \
+   -H "Content-Type: application/json"
+}
 
 AddDataSourceCadvisor() {
   curl "http://admin:admin@${_GRAFANA_IP}:3000/api/datasources" \
@@ -32,5 +42,12 @@ until AddDataSourceCadvisor; do
   sleep 1
 done
 echo 'Done!'
+
+until InstallDashboards; do
+  echo 'Configuring Grafana...'
+  sleep 1
+done
+echo 'Done!'
+
 
 wait
