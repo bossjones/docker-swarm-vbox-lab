@@ -2,10 +2,14 @@
 
 set -e
 
+# Tutorial
+# source: https://botleg.com/stories/monitoring-docker-swarm-with-cadvisor-influxdb-and-grafana/
+
 _DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # source: https://github.com/grafana/grafana/issues/1789
 # source: https://github.com/grafana/grafana/issues/1789#issuecomment-248309442
+
 
 _GRAFANA_IP=$(docker-machine ip swarm-manager)
 
@@ -23,7 +27,7 @@ AddDataSourceCadvisor() {
     -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
     --data-binary \
-    '{"name":"influx","type":"influxdb","url":"http://influx:8086","access":"proxy","isDefault":true,"database":"cadvisor"}'
+    '{"name":"influx","type":"influxdb","url":"http://influx:8086","access":"proxy","isDefault":true,"database":"cadvisor","basicauth":false}'
 }
 
 AddDataSourcePrometheus() {

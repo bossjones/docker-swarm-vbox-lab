@@ -264,8 +264,12 @@ deploy-portainer:
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		portainer/portainer
 
+# source: https://oliverveits.wordpress.com/2016/11/02/how-to-set-up-docker-monitoring-via-cadvisor-influxdb-and-grafana/
 deploy-swarmpit:
 	@docker stack deploy -c docker-compose.swarmpit.yml swarmpit
+
+deploy-stress-test:
+	@docker run --rm -it petarmaric/docker.cpu-stress-test
 
 # NOTE: alternative docker stack ps monitor
 list-services-swarm-monitoring:
