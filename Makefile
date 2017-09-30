@@ -339,7 +339,12 @@ open: open-prometheus open-viz open-portainer open-nginx open-logstash open-graf
 
 open-monitoring: open-influxdb open-grafana open-cadvisor open-node-exporter
 
-open-logging: open-kibana open-elasticsearch open-head-plugin
+open-logging: open-kibana open-elasticsearch open-head-plugin open-elasticsearch-metrics
+
+# source: https://github.com/vvanholl/elasticsearch-prometheus-exporter
+# http://<your_server_address>:9200/_prometheus/metrics
+open-elasticsearch-metrics:
+	@bash ./script/open-elasticsearch-metrics.sh
 
 dm-start-all:
 	docker-machine start local
