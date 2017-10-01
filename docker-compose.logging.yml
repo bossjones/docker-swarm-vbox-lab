@@ -38,21 +38,22 @@ services:
       - default
       - monitor_monitoring
     environment:
-      - cluster.name=docker-cluster
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms256M -Xmx256M -Xms512M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError  -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=192.168.99.109 -Dcom.sun.management.jmxremote.local.only=false"
+      cluster.name: "docker-cluster"
+      bootstrap.memory_lock: "true"
+      # VisualVM
+      ES_JAVA_OPTS: "-Xms256M -Xmx256M -Xms512M -Xmx512M -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:-HeapDumpOnOutOfMemoryError -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=192.168.99.109 -Dcom.sun.management.jmxremote.local.only=false"
       # LS_JAVA_OPTS: "-Xmx256m -Xms256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=192.168.99.109 -Dcom.sun.management.jmxremote.local.only=false"
       # NOTE: https://www.elastic.co/products/x-pack
       # Security for elasticsearch
       # For this demo, we will disable the X-Pack.
-      - xpack.security.enabled=false
-      - xpack.monitoring.enabled=false
-      - xpack.graph.enabled=false
-      - xpack.watcher.enabled=false
-      - ${_SWARM_MANAGER_IP}
-      - ${_NODE_1_IP}
-      - ${_NODE_2_IP}
-      - ${_NODE_3_IP}
+      xpack.security.enabled: "false"
+      xpack.monitoring.enabled: "false"
+      xpack.graph.enabled: "false"
+      xpack.watcher.enabled: "false"
+      # - ${_SWARM_MANAGER_IP}
+      # - ${_NODE_1_IP}
+      # - ${_NODE_2_IP}
+      # - ${_NODE_3_IP}
     volumes:
       - esdata:/usr/share/elasticsearch/data
     # TODO: Enable this
@@ -89,9 +90,16 @@ services:
       - default
       - monitor_monitoring
     ports:
-      - 9111:9100
+      - '9111:9100'
     deploy:
       replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 64M
+        reservations:
+          cpus: '0.2'
+          memory: 32M
       placement:
         constraints:
           - node.hostname == node-01
