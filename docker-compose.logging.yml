@@ -41,7 +41,8 @@ services:
       cluster.name: "docker-cluster"
       bootstrap.memory_lock: "true"
       # VisualVM
-      ES_JAVA_OPTS: "-Xms256M -Xmx256M -Xms512M -Xmx512M -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:-HeapDumpOnOutOfMemoryError -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=192.168.99.109 -Dcom.sun.management.jmxremote.local.only=false"
+      ES_JAVA_OPTS: "-XX:InitialHeapSize=256m -XX:MaxHeapSize=256m -XX:+PrintCommandLineFlags -XX:+PrintGC -XX:+PrintGCCause -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime -XX:+PrintTenuringDistribution -XX:+PrintAdaptiveSizePolicy -XX:+AlwaysPreTouch"
+      # ES_JAVA_OPTS: "-Xms256M -Xmx256M -Xms512M -Xmx512M -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:-HeapDumpOnOutOfMemoryError -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=192.168.99.109 -Dcom.sun.management.jmxremote.local.only=false"
       # LS_JAVA_OPTS: "-Xmx256m -Xms256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=192.168.99.109 -Dcom.sun.management.jmxremote.local.only=false"
       # NOTE: https://www.elastic.co/products/x-pack
       # Security for elasticsearch
