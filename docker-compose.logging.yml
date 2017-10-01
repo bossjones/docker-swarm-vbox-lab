@@ -33,7 +33,8 @@ services:
     ports:
       - '9200:9200'
       - '9300:9300'
-      - '18080:18080'
+      # - '18080:18080' # default JMX
+      - '9010:9010'
     networks:
       - default
       - monitor_monitoring
@@ -51,6 +52,7 @@ services:
       xpack.monitoring.enabled: 'false'
       xpack.graph.enabled: 'false'
       xpack.watcher.enabled: 'false'
+      http.host: '0.0.0.0'
       # cluster.name: "docker-cluster"
       # bootstrap.memory_lock: "true"
       # VisualVM
@@ -82,6 +84,9 @@ services:
     #   - IPC_LOCK
     deploy:
       replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 60s
       resources:
         limits:
           cpus: '2'
@@ -128,7 +133,7 @@ services:
 
   logstash:
     # image: docker.elastic.co/logstash/logstash:5.3.2
-    image: docker.elastic.co/logstash/logstash:5.6.1
+    # image: docker.elastic.co/logstash/logstash:5.6.1
     image: docker.io/bossjones/logstash:5.6.1
     networks:
       - default
@@ -171,13 +176,28 @@ services:
     # NOTE: By default, the logging API attempts to bind to `tcp:9600`. If this port is already in use by another Logstash
     # NOTE: # The port to listen on for filebeat connections. port => 5044
     # ----------------------------------------------------
+    # By default, the stack exposes the following ports:
+    # 5000: Logstash TCP input.
+    # 9200: Elasticsearch HTTP
+    # 9300: Elasticsearch TCP transport
+    # 5601: Kibana
+    # Note: When mapping ports in the HOST:CONTAINER format, you may experience erroneous results when using a container port lower than 60, because YAML will parse numbers in the format xx:yy as sexagesimal (base 60). For this reason, we recommend always explicitly specifying your port mappings as strings.
+    # source: https://docs.docker.com/compose/compose-file/#ports
     ports:
       # - '127.0.0.1:5044:5044'
       # - '127.0.0.1:9600:9600'
       - '5044:5044'
+      # logging api
+      # The bind port for the metrics REST endpoint.
       - '9600:9600'
       - '9011:9011'
+      # udp port
+      - "5000:5000"
+      # - '5000:5000/udp'
     environment:
+      xpack.monitoring.enabled: 'false'
+      pipeline.workers: '2'
+      node.name: 'logstash'
       # Legend
       # -Xms = -XX:InitialHeapSize
       # -Xmx = -XX:MaxHeapSize)
@@ -192,6 +212,9 @@ services:
       - elasticsearch
     deploy:
       replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 60s
       resources:
         limits:
           cpus: '2'
@@ -204,20 +227,42 @@ services:
         delay: 30s
       placement:
         constraints:
-          - node.hostname == node-01
+          - node.hostname == node-03
 
   # logspout:
   #   image: bekt/logspout-logstash
   #   networks:
   #     - default
   #     - monitor_monitoring
+    # NOTE: Builtin modules
+    # ===================================
+    # adapters/raw
+    # adapters/syslog
+    # transports/tcp
+    # transports/tls
+    # transports/udp
+    # httpstream
+    # routesapi
+    # ===================================
+    # NOTE: Third-party modules
+    # ===================================
+    # logspout-kafka
+    # logspout-redis...
+    # logspout-logstash
+    # logspout-redis-logstash
+    # logspout-gelf for Graylog
+    # ===================================
   #   environment:
   #     ROUTE_URIS: 'logstash://logstash:5000'
   #     DOCKER_LABELS: "true"
+  #     PORT: '8000'
+  #     DEBUG: 'true'
   #   expose:
-  #     - 8000
+  #     - '8000'
   #   ports:
-  #     - '0.0.0.0:8000:80'
+  #     # - '0.0.0.0:8000:80'
+  #     # - '127.0.0.1:8000:80'
+  #     - '8000:8000'
   #   # We also need to create a volume for the Docker socket,
   #   # /var/run/docker.sock.
   #   # This lets the container to attach to the docker daemon
@@ -242,7 +287,7 @@ services:
 
   kibana:
     # image: docker.elastic.co/kibana/kibana:5.3.2
-    image: docker.elastic.co/kibana/kibana:5.6.1
+    # image: docker.elastic.co/kibana/kibana:5.6.1
     image: docker.io/bossjones/kibana:5.6.1
     networks:
       - default
@@ -250,15 +295,19 @@ services:
     # The router mesh feature will then let us access
     # kibana from port 8088 of any host in the swarm.
     expose:
-      - 5601
+      - '5601'
     ports:
-      - '5601:5601'
+      - '127.0.0.1:5601:5601'
     depends_on:
       - elasticsearch
     environment:
       ELASTICSEARCH_URL: 'http://elasticsearch:9200'
       XPACK_SECURITY_ENABLED: 'false'
       XPACK_MONITORING_ENABLED: 'false'
+      xpack.monitoring.ui.container.elasticsearch.enabled: 'false'
+      xpack.security.enabled: 'false'
+      xpack.monitoring.enabled: 'false'
+      elasticsearch.url: 'http://elasticsearch:9200'
     deploy:
       replicas: 1
       resources:
@@ -271,3 +320,32 @@ services:
       placement:
         constraints:
           - node.hostname == node-03
+
+  # FIXME: CONSIDER USING THIS!!!!!!!!!! (9/30/2017)
+  # source: https://github.com/elastic/stack-docker
+  # # Run a short-lived container to set up Logstash.
+  # setup_logstash:
+  #   image: centos:7
+  #   volumes: ['./scripts/setup-logstash.sh:/usr/local/bin/setup-logstash.sh:ro']
+  #   # The script may have CR/LF line endings if using Docker for Windows, so
+  #   # make sure that they don't confuse Bash.
+  #   command: ['/bin/bash', '-c', 'cat /usr/local/bin/setup-logstash.sh | tr -d "\r" | bash']
+  #   environment: ['ELASTIC_PASSWORD=${ELASTIC_PASSWORD}']
+  #   networks: ['stack']
+  #   depends_on: ['elasticsearch']
+
+  # packetbeat:
+  #   image: docker.elastic.co/beats/packetbeat:${TAG}
+  #   # Packetbeat needs some elevated privileges to capture network traffic.
+  #   # We'll grant them with POSIX capabilities.
+  #   cap_add: ['NET_RAW', 'NET_ADMIN']
+  #   # Use "host mode" networking to allow Packetbeat to capture traffic from
+  #   # the real network interface on the host, rather than being isolated to the
+  #   # container's virtual interface.
+  #   network_mode: host
+  #   # Since we did that, Packetbeat is not part of the "stack" Docker network
+  #   # that the other containers are connected to, and thus can't resolve the
+  #   # hostname "elasticsearch". Instead, we'll tell it to find Elasticsearch
+  #   # on "localhost", which is the Docker host machine in this context.
+  #   command: packetbeat -v -e -E output.elasticsearch.hosts='["localhost:9200"]'
+  #   depends_on: ['elasticsearch']
