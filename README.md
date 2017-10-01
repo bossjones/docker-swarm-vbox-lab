@@ -385,3 +385,25 @@ networks:
 
 - https://github.com/docker/swarmkit/issues/1716
 - https://github.com/nlandolfi/mixer/blob/75ecdd0ad2959b0088ea75810ed1755b83e74490/deploy/kube/conf/import_dashboard.sh
+
+# IOT Solution
+- https://medium.com/@DazWilkin/docker-swarm-and-prometheus-fd19462f1bf8
+
+
+# Node file Service Discovery
+- https://github.com/SphericalElephant/ansible-role-prometheus-node-exporter/blob/master/defaults/main.yml
+
+`-collectors.enabled=conntrack,diskstats,entropy,filefd,filesystem,loadavg,mdadm,meminfo,netdev,netstat,sockstat,stat,textfile,time,uname,vmstat`
+
+**This is Ansible FYI:**
+
+```
+prometheus_node_exporter_parameters:
+  - "-collectors.enabled={{ prometheus_node_exporter_collectors_enable | join(',') }}"
+  - "-web.listen-address={{ prometheus_node_exporter_web_listen_address }}"
+  - '-log.level=info'
+  - '-collector.diskstats.ignored-devices=^(ram|loop|fd)\d+$'
+  - '-collector.filesystem.ignored-mount-points=^/(sys|proc|dev|run)($|/)'
+  - '-collector.netdev.ignored-devices="{{ prometheus_node_exporter_collector_netdev_ignored_devices }}"'
+  - '-collector.textfile.directory=/var/lib/prometheus/node-exporter'
+  ```

@@ -26,19 +26,27 @@ scrape_configs:
   - job_name: 'node'
     static_configs:
       - targets: ['node-exporter:9100']
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['cadvisor:8080']
-  # - job_name: 'docker-engine'
+  # - job_name: 'cadvisor'
   #   static_configs:
-  #     - targets: ['docker-exporter:4999','']
+  #     - targets: ['cadvisor:8080']
   - job_name: 'elasticsearch'
     scrape_interval: 10s
     metrics_path: "/_prometheus/metrics"
     static_configs:
       - targets: ['elasticsearch:9200']
-      # - node1:9200
-      # - node3:9200
+
+  - job_name: cadvisor
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+    # sd = service discovery
+    dns_sd_configs:
+    - names:
+      - tasks.cadvisor
+      refresh_interval: 30s
+      type: A
+      port: 8080
 
   # ± |feature-logstash-updates ✓| → docker exec -it monitor_docker-exporter.5ufz0uzbexqjjhwegq6jbvdls.uu9ggcjwko7u765cb2bc7q0oi  /bin/sh -c "nslookup tasks.docker-exporter"
   # nslookup: can't resolve '(null)': Name does not resolve
