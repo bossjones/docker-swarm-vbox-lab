@@ -243,6 +243,10 @@ deploy-viz: install-viz
 create-influx:
 	@bash ./scripts/create-influx-db.sh
 
+deploy-logging-force:
+	@docker stack deploy -c docker-compose.logging.yml elk
+	@bash ./scripts/es-create-index.sh
+
 # This will start the services in the stack named elk
 deploy-logging:
 	@docker stack deploy -c docker-compose.logging.yml elk

@@ -42,7 +42,8 @@ services:
       # -Xms = -XX:InitialHeapSize
       # -Xmx = -XX:MaxHeapSize)
       # -Xmx2g -Xms2g
-      ES_JAVA_OPTS: '-Xms256m -Xmx256m'
+      ES_JAVA_OPTS: '-Xms256m -Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.rmi.port=9010 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=192.168.99.109'
+      # ES_JAVA_OPTS: '-Xms256m -Xmx256m'
       # NOTE: https://www.elastic.co/products/x-pack
       # Security for elasticsearch
       # For this demo, we will disable the X-Pack.
@@ -83,7 +84,7 @@ services:
       replicas: 1
       resources:
         limits:
-          cpus: '1'
+          cpus: '2'
           memory: 512M
         reservations:
           cpus: '0.5'
