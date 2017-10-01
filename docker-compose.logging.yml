@@ -98,34 +98,34 @@ services:
         constraints:
           - node.hostname == node-01
 
-  # NOTE: example - https://github.com/kazgurs/elasticsearch/blob/4e60ae2c0a968812d333e44ea6d2c981747736f5/README.md
-  # NOTE: https://github.com/mobz/elasticsearch-head#running-with-built-in-server
-  head:
-    # container_name: head
-    image: mobz/elasticsearch-head:5
-    command: ['grunt', 'connect:server', '--hostname','http://elasticsearch', '--port', '9200']
-    depends_on:
-      - elasticsearch
-    networks:
-      - default
-      - monitor_monitoring
-    ports:
-      - '9111:9100'
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-        delay: 60s
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 64M
-        reservations:
-          cpus: '0.2'
-          memory: 32M
-      placement:
-        constraints:
-          - node.hostname == node-01
+  # # NOTE: example - https://github.com/kazgurs/elasticsearch/blob/4e60ae2c0a968812d333e44ea6d2c981747736f5/README.md
+  # # NOTE: https://github.com/mobz/elasticsearch-head#running-with-built-in-server
+  # head:
+  #   # container_name: head
+  #   image: mobz/elasticsearch-head:5
+  #   # command: ['grunt', 'connect:server', '--hostname','http://elasticsearch', '--port', '9200']
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - default
+  #     - monitor_monitoring
+  #   ports:
+  #     - '9111:9100'
+  #   deploy:
+  #     replicas: 1
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 60s
+  #     resources:
+  #       limits:
+  #         cpus: '0.5'
+  #         memory: 64M
+  #       reservations:
+  #         cpus: '0.2'
+  #         memory: 32M
+  #     placement:
+  #       constraints:
+  #         - node.hostname == node-01
 
     # elasticsearch_exporter:
     #     image: justwatch/elasticsearch_exporter:1.0.1
