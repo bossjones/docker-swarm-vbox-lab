@@ -204,10 +204,10 @@ perf-es:
 	# TODO: Make sure we do a check to see if this is in there or not
 	# FIXME: Make sure we do a check to see if this is in there or not
 	# Make it perminent
-	$(DM) ssh swarm-manager echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
-	$(DM) ssh node-01 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
-	$(DM) ssh node-02 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
-	$(DM) ssh node-03 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	# $(DM) ssh swarm-manager echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	# $(DM) ssh node-01 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	# $(DM) ssh node-02 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	# $(DM) ssh node-03 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
 
 dockviz-containers:
 	$(DOCKVIZ) containers -d | dot -Tpng -o images/containers.png
