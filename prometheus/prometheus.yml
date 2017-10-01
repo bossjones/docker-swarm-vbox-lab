@@ -29,10 +29,9 @@ scrape_configs:
   - job_name: 'cadvisor'
     static_configs:
       - targets: ['cadvisor:8080']
-  - job_name: 'docker-engine'
-    static_configs:
-      - targets: ['docker-exporter:4999']
-
+  # - job_name: 'docker-engine'
+  #   static_configs:
+  #     - targets: ['docker-exporter:4999','']
   - job_name: 'elasticsearch'
     scrape_interval: 10s
     metrics_path: "/_prometheus/metrics"
@@ -40,6 +39,22 @@ scrape_configs:
       - targets: ['elasticsearch:9200']
       # - node1:9200
       # - node3:9200
+
+  # ± |feature-logstash-updates ✓| → docker exec -it monitor_docker-exporter.5ufz0uzbexqjjhwegq6jbvdls.uu9ggcjwko7u765cb2bc7q0oi  /bin/sh -c "nslookup tasks.docker-exporter"
+  # nslookup: can't resolve '(null)': Name does not resolve
+  # Name:      tasks.docker-exporter
+  # Address 1: 10.0.1.17 7d37ca585e04
+  # Address 2: 10.0.1.18 monitor_docker-exporter.9hwbipkvjiecnpubxt3mu2iqv.zdrpcckmwh8hqrbs7gu65xlug.monitor_default
+  # Address 3: 10.0.1.19 monitor_docker-exporter.s3nyed5459b8g0m7dt1la1emk.qwqq1qd9m16a3p8woootkskd6.monitor_default
+  # Address 4: 10.0.1.20 monitor_docker-exporter.e6xnk8nq5hzisuvuxynhmja29.mifjwifoxz8dgajqu1h8mbwxd.monitor_default
+  # source: https://medium.com/@basi/docker-swarm-metrics-in-prometheus-e02a6a5745a
+  # NOTE: We use dns to hit each of the active containers exporting docker stats
+  - job_name: 'docker-exporter'
+    dns_sd_configs:
+    - names:
+      - 'tasks.docker-exporter'
+      type: 'A'
+      port: 4999
 
   # - job_name: 'zipkin'
   #   scrape_interval: 5s
