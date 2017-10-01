@@ -407,3 +407,7 @@ prometheus_node_exporter_parameters:
   - '-collector.netdev.ignored-devices="{{ prometheus_node_exporter_collector_netdev_ignored_devices }}"'
   - '-collector.textfile.directory=/var/lib/prometheus/node-exporter'
   ```
+
+# Monitoring a Docker Swarm Cluster with Prometheus
+
+- https://chmod666.org/2017/08/monitoring-a-docker-swarm-cluster-with-prometheus
