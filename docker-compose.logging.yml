@@ -103,6 +103,7 @@ services:
   head:
     # container_name: head
     image: mobz/elasticsearch-head:5
+    command: ['grunt', 'server', '--hostname','elasticsearch']
     depends_on:
       - elasticsearch
     networks:
@@ -283,6 +284,7 @@ services:
   #       reservations:
   #         cpus: '0.25'
   #         memory: 32M
+  #
 
 
   kibana:
