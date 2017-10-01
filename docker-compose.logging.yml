@@ -306,22 +306,22 @@ services:
     depends_on:
       - elasticsearch
     environment:
-      ELASTICSEARCH_URL: 'http://elasticsearch:9200'
-      XPACK_SECURITY_ENABLED: 'false'
-      XPACK_MONITORING_ENABLED: 'false'
+      # ELASTICSEARCH_URL: 'http://elasticsearch:9200'
+      # XPACK_SECURITY_ENABLED: 'false'
+      # XPACK_MONITORING_ENABLED: 'false'
       xpack.monitoring.ui.container.elasticsearch.enabled: 'false'
       xpack.security.enabled: 'false'
       xpack.monitoring.enabled: 'false'
       elasticsearch.url: 'http://elasticsearch:9200'
     deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 256M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
+      # replicas: 1
+      # resources:
+      #   limits:
+      #     cpus: '0.25'
+      #     memory: 256M
+      #   reservations:
+      #     cpus: '0.25'
+      #     memory: 128M
       placement:
         constraints:
           - node.hostname == node-03
