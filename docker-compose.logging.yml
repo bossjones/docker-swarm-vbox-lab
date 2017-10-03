@@ -44,15 +44,21 @@ services:
       # -Xmx = -XX:MaxHeapSize)
       # -Xmx2g -Xms2g
       ES_JAVA_OPTS: '-Xms256m -Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.rmi.port=9010 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=192.168.99.109'
+      XPACK_GRAPH_ENABLED: 'false'
+      HTTP_HOST: '0.0.0.0'
+      DISCOVERY_ZEN_MINIMUM_MASTER_NODES: '1'
+      DISCOVERY_TYPE: 'single-node'
+      XPACK_SECURITY_ENABLED: 'false'
+      XPACK_MONITORING_ENABLED: 'false'
+      XPACK_ML_ENABLED: 'false'
+      XPACK_WATCHER_ENABLED: 'false'
       # ES_JAVA_OPTS: '-Xms256m -Xmx256m'
       # NOTE: https://www.elastic.co/products/x-pack
       # Security for elasticsearch
       # For this demo, we will disable the X-Pack.
-      xpack.security.enabled: 'false'
-      xpack.monitoring.enabled: 'false'
-      xpack.graph.enabled: 'false'
-      xpack.watcher.enabled: 'false'
-      http.host: '0.0.0.0'
+      # xpack.security.enabled: 'false'
+      # xpack.monitoring.enabled: 'false'
+      # xpack.watcher.enabled: 'false'
       # cluster.name: "docker-cluster"
       # bootstrap.memory_lock: "true"
       # VisualVM
@@ -199,9 +205,11 @@ services:
       - "5000:5000/tcp"
       - '5000:5000/udp'
     environment:
-      xpack.monitoring.enabled: 'false'
-      pipeline.workers: '2'
-      node.name: 'logstash'
+      XPACK_MONITORING_ENABLED: 'false'
+      PIPELINE_WORKERS: '2'
+      # NODE_NAME: 'logstash'
+      ES_HOST: 'elasticsearch'
+      ES_PORT: '9200'
       # Legend
       # -Xms = -XX:InitialHeapSize
       # -Xmx = -XX:MaxHeapSize)
@@ -233,8 +241,11 @@ services:
         constraints:
           - node.hostname == node-03
 
+  # source: https://github.com/rancher/catalog-dockerfiles/blob/master/logspout/docker-compose.yml
   # logspout:
   #   image: bekt/logspout-logstash
+  #   tty: true
+  #   stdin_open: true
   #   networks:
   #     - default
   #     - monitor_monitoring
@@ -261,6 +272,7 @@ services:
   #     DOCKER_LABELS: "true"
   #     PORT: '8000'
   #     DEBUG: 'true'
+  #     LOGSPOUT: 'ignore'
   #   expose:
   #     - '8000'
   #   ports:
@@ -271,6 +283,9 @@ services:
   #   # /var/run/docker.sock.
   #   # This lets the container to attach to the docker daemon
   #   # in the host and collect all the logs.
+  #   labels:
+  #     io.rancher.scheduler.global: 'true'
+  #     io.rancher.container.hostname_override: container_name
   #   volumes:
   #     - '/var/run/docker.sock:/var/run/docker.sock'
   #   depends_on:
@@ -310,10 +325,14 @@ services:
       # ELASTICSEARCH_URL: 'http://elasticsearch:9200'
       # XPACK_SECURITY_ENABLED: 'false'
       # XPACK_MONITORING_ENABLED: 'false'
-      xpack.monitoring.ui.container.elasticsearch.enabled: 'false'
-      xpack.security.enabled: 'false'
-      xpack.monitoring.enabled: 'false'
-      elasticsearch.url: 'http://elasticsearch:9200'
+      # xpack.monitoring.ui.container.elasticsearch.enabled: 'false'
+      XPACK_MONITORING_UI_CONTAINER_ELASTICSEARCH_ENABLED: 'false'
+      ELASTICSEARCH_URL: 'http://elasticsearch:9200'
+      XPACK_GRAPH_ENABLED: 'false'
+      XPACK_ML_ENABLED: 'false'
+      XPACK_MONITORING_ENABLED: 'false'
+      XPACK_REPORTING_ENABLED: 'false'
+      XPACK_SECURITY_ENABLED: 'false'
     deploy:
       # replicas: 1
       # resources:
