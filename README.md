@@ -384,3 +384,133 @@ networks:
 - LOOK AT ME: Service is not DNS resolvable from another one if containers run on different nodes https://github.com/docker/swarmkit/issues/1429
 
 - https://github.com/docker/swarmkit/issues/1716
+- https://github.com/nlandolfi/mixer/blob/75ecdd0ad2959b0088ea75810ed1755b83e74490/deploy/kube/conf/import_dashboard.sh
+
+# IOT Solution
+- https://medium.com/@DazWilkin/docker-swarm-and-prometheus-fd19462f1bf8
+
+
+# Node file Service Discovery
+- https://github.com/SphericalElephant/ansible-role-prometheus-node-exporter/blob/master/defaults/main.yml
+
+`-collectors.enabled=conntrack,diskstats,entropy,filefd,filesystem,loadavg,mdadm,meminfo,netdev,netstat,sockstat,stat,textfile,time,uname,vmstat`
+
+**This is Ansible FYI:**
+
+```
+prometheus_node_exporter_parameters:
+  - "-collectors.enabled={{ prometheus_node_exporter_collectors_enable | join(',') }}"
+  - "-web.listen-address={{ prometheus_node_exporter_web_listen_address }}"
+  - '-log.level=info'
+  - '-collector.diskstats.ignored-devices=^(ram|loop|fd)\d+$'
+  - '-collector.filesystem.ignored-mount-points=^/(sys|proc|dev|run)($|/)'
+  - '-collector.netdev.ignored-devices="{{ prometheus_node_exporter_collector_netdev_ignored_devices }}"'
+  - '-collector.textfile.directory=/var/lib/prometheus/node-exporter'
+  ```
+
+# Monitoring a Docker Swarm Cluster with Prometheus
+
+- https://chmod666.org/2017/08/monitoring-a-docker-swarm-cluster-with-prometheus
+
+
+# elasticsearch env vars example
+
+```
+ELASTICSEARCH_URL=http://elasticsearch:9200
+XPACK_GRAPH_ENABLED=false
+XPACK_ML_ENABLED=false
+XPACK_MONITORING_ENABLED=false
+XPACK_REPORTING_ENABLED=false
+XPACK_SECURITY_ENABLED=false
+```
+
+# FIXME: Env vars ( elasticsearch, kibana, logstash )
+
+```
+For compatibility with container orchestration systems, these environment variables are written in all capitals, with underscores as word separators. The helper translates these names to valid Kibana setting names.
+
+# example
+
+services:
+  kibana:
+    image: docker.elastic.co/kibana/kibana:5.6.2
+    environment:
+      SERVER_NAME: kibana.example.org
+      ELASTICSEARCH_URL: http://elasticsearch.example.org
+
+# docker defaults
+Docker defaultsedit
+The following settings have different default values when using the Docker image:
+
+server.host
+
+"0"
+
+elasticsearch.url
+
+http://elasticsearch:9200
+
+elasticsearch.username
+
+elastic
+
+elasticsearch.password
+
+changeme
+
+xpack.monitoring.ui.container.elasticsearch.enabled
+
+true
+
+
+# one more example
+# source: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
+
+version: '2'
+services:
+  elasticsearch1:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2
+    container_name: elasticsearch1
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+  elasticsearch2:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "discovery.zen.ping.unicast.hosts=elasticsearch1"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
+    volumes:
+      - esdata2:/usr/share/elasticsearch/data
+    networks:
+      - esnet
+
+volumes:
+  esdata1:
+    driver: local
+  esdata2:
+    driver: local
+
+networks:
+  esnet:
+```
+
+See: https://www.elastic.co/guide/en/kibana/current/_configuring_kibana_on_docker.html

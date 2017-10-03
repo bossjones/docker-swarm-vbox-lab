@@ -6,7 +6,7 @@
 # elasticsearch: node-01 (9200, 9300)
 # logstash: node-02 (5044, 9600)
 # logspout: global (8000:80)
-# kibana: node-03 (8088:5601)
+# kibana: node-03 (5601:5601)
 
 _SWARM_MANAGER_IP=$(docker-machine ip swarm-manager)
 _NODE_1_IP=$(docker-machine ip node-01)

@@ -24,36 +24,128 @@ volumes:
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.1
+    build:
+      context: ./container/elasticsearch
+      dockerfile: Dockerfile
+    # image: elasticsearch
+    image: docker.io/bossjones/elasticsearch:5.6.1
+    # image: docker.elastic.co/elasticsearch/elasticsearch:5.6.1
     ports:
       - '9200:9200'
       - '9300:9300'
+      # - '18080:18080' # default JMX
+      - '9010:9010'
     networks:
-      # - logging
       - default
       - monitor_monitoring
     environment:
-      ES_JAVA_OPTS: '-Xms256m -Xmx256m'
+      # Legend
+      # -Xms = -XX:InitialHeapSize
+      # -Xmx = -XX:MaxHeapSize)
+      # -Xmx2g -Xms2g
+      ES_JAVA_OPTS: '-Xms256m -Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.rmi.port=9010 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=192.168.99.109'
+      XPACK_GRAPH_ENABLED: 'false'
+      HTTP_HOST: '0.0.0.0'
+      DISCOVERY_ZEN_MINIMUM_MASTER_NODES: '1'
+      DISCOVERY_TYPE: 'single-node'
+      XPACK_SECURITY_ENABLED: 'false'
+      XPACK_MONITORING_ENABLED: 'false'
+      XPACK_ML_ENABLED: 'false'
+      XPACK_WATCHER_ENABLED: 'false'
+      # ES_JAVA_OPTS: '-Xms256m -Xmx256m'
       # NOTE: https://www.elastic.co/products/x-pack
       # Security for elasticsearch
       # For this demo, we will disable the X-Pack.
-      xpack.security.enabled: 'false'
-      xpack.monitoring.enabled: 'false'
-      xpack.graph.enabled: 'false'
-      xpack.watcher.enabled: 'false'
+      # xpack.security.enabled: 'false'
+      # xpack.monitoring.enabled: 'false'
+      # xpack.watcher.enabled: 'false'
+      # cluster.name: "docker-cluster"
+      # bootstrap.memory_lock: "true"
+      # VisualVM
+      # ES_JAVA_OPTS: "-XX:InitialHeapSize=256m -XX:MaxHeapSize=512m -XX:+PrintCommandLineFlags -XX:+PrintGC -XX:+PrintGCCause -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime -XX:+PrintTenuringDistribution -XX:+PrintAdaptiveSizePolicy -XX:+AlwaysPreTouch"
+      # ES_JAVA_OPTS: "-Xms256M -Xmx256M -Xms512M -Xmx512M -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:-HeapDumpOnOutOfMemoryError -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=192.168.99.109 -Dcom.sun.management.jmxremote.local.only=false"
+      # LS_JAVA_OPTS: "-Xmx256m -Xms256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=192.168.99.109 -Dcom.sun.management.jmxremote.local.only=false"
+      # NOTE: https://www.elastic.co/products/x-pack
+      # Security for elasticsearch
+      # For this demo, we will disable the X-Pack.
+      # xpack.security.enabled: "false"
+      # xpack.monitoring.enabled: "false"
+      # xpack.graph.enabled: "false"
+      # xpack.watcher.enabled: "false"
+      # - ${_SWARM_MANAGER_IP}
+      # - ${_NODE_1_IP}
+      # - ${_NODE_2_IP}
+      # - ${_NODE_3_IP}
     volumes:
       - esdata:/usr/share/elasticsearch/data
+    # TODO: Enable this
+    # ulimits:
+    #   memlock:
+    #     soft: -1
+    #     hard: -1
+    #   nofile:
+    #     soft: 65536
+    #     hard: 65536
+    # cap_add:
+    #   - IPC_LOCK
     deploy:
       replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
       placement:
         constraints:
           - node.hostname == node-01
 
+  # # NOTE: example - https://github.com/kazgurs/elasticsearch/blob/4e60ae2c0a968812d333e44ea6d2c981747736f5/README.md
+  # # NOTE: https://github.com/mobz/elasticsearch-head#running-with-built-in-server
+  # head:
+  #   # container_name: head
+  #   image: mobz/elasticsearch-head:5
+  #   # command: ['grunt', 'connect:server', '--hostname','http://elasticsearch', '--port', '9200']
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - default
+  #     - monitor_monitoring
+  #   ports:
+  #     - '9111:9100'
+  #   deploy:
+  #     replicas: 1
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 60s
+  #     resources:
+  #       limits:
+  #         cpus: '0.5'
+  #         memory: 64M
+  #       reservations:
+  #         cpus: '0.2'
+  #         memory: 32M
+  #     placement:
+  #       constraints:
+  #         - node.hostname == node-01
+
+    # elasticsearch_exporter:
+    #     image: justwatch/elasticsearch_exporter:1.0.1
+    #     command:
+    #     - '-es.uri=http://elasticsearch:9200'
+    #     restart: always
+    #     ports:
+    #     - "127.0.0.1:9108:9108"
+
   logstash:
     # image: docker.elastic.co/logstash/logstash:5.3.2
-    image: docker.elastic.co/logstash/logstash:5.6.1
+    # image: docker.elastic.co/logstash/logstash:5.6.1
+    image: docker.io/bossjones/logstash:5.6.1
     networks:
-      # - logging
       - default
       - monitor_monitoring
     # ----------------------------------------------------
@@ -94,11 +186,36 @@ services:
     # NOTE: By default, the logging API attempts to bind to `tcp:9600`. If this port is already in use by another Logstash
     # NOTE: # The port to listen on for filebeat connections. port => 5044
     # ----------------------------------------------------
+    # By default, the stack exposes the following ports:
+    # 5000: Logstash TCP input.
+    # 9200: Elasticsearch HTTP
+    # 9300: Elasticsearch TCP transport
+    # 5601: Kibana
+    # Note: When mapping ports in the HOST:CONTAINER format, you may experience erroneous results when using a container port lower than 60, because YAML will parse numbers in the format xx:yy as sexagesimal (base 60). For this reason, we recommend always explicitly specifying your port mappings as strings.
+    # source: https://docs.docker.com/compose/compose-file/#ports
     ports:
-      - '127.0.0.1:5044:5044'
-      - '127.0.0.1:9600:9600'
+      # - '127.0.0.1:5044:5044'
+      # - '127.0.0.1:9600:9600'
+      - '5044:5044'
+      # logging api
+      # The bind port for the metrics REST endpoint.
+      - '9600:9600'
+      - '9011:9011'
+      # udp port
+      - "5000:5000/tcp"
+      - '5000:5000/udp'
     environment:
-      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      XPACK_MONITORING_ENABLED: 'false'
+      PIPELINE_WORKERS: '2'
+      # NODE_NAME: 'logstash'
+      ES_HOST: 'elasticsearch'
+      ES_PORT: '9200'
+      # Legend
+      # -Xms = -XX:InitialHeapSize
+      # -Xmx = -XX:MaxHeapSize)
+      # -Xmx2g -Xms2g
+      LS_JAVA_OPTS: '-Xms256m -Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9011 -Dcom.sun.management.jmxremote.rmi.port=9011 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=192.168.99.109'
+      # LS_JAVA_OPTS: "-Xmx256m -Xms256m"
       # NOTE: Enable JMX Remote
       # LS_JAVA_OPTS: "-Xmx256m -Xms256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=192.168.99.103 -Dcom.sun.management.jmxremote.local.only=false"
     volumes:
@@ -107,25 +224,68 @@ services:
       - elasticsearch
     deploy:
       replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '.5'
+          memory: 256M
+      update_config:
+        parallelism: 1
+        delay: 30s
       placement:
         constraints:
-          - node.hostname == node-02
+          - node.hostname == node-03
 
+  # source: https://github.com/rancher/catalog-dockerfiles/blob/master/logspout/docker-compose.yml
   # logspout:
   #   image: bekt/logspout-logstash
+  #   tty: true
+  #   stdin_open: true
   #   networks:
-  #     # - default
-  #     # - logging
+  #     - default
   #     - monitor_monitoring
+    # NOTE: Builtin modules
+    # ===================================
+    # adapters/raw
+    # adapters/syslog
+    # transports/tcp
+    # transports/tls
+    # transports/udp
+    # httpstream
+    # routesapi
+    # ===================================
+    # NOTE: Third-party modules
+    # ===================================
+    # logspout-kafka
+    # logspout-redis...
+    # logspout-logstash
+    # logspout-redis-logstash
+    # logspout-gelf for Graylog
+    # ===================================
   #   environment:
   #     ROUTE_URIS: 'logstash://logstash:5000'
   #     DOCKER_LABELS: "true"
+  #     PORT: '8000'
+  #     DEBUG: 'true'
+  #     LOGSPOUT: 'ignore'
+  #   expose:
+  #     - '8000'
   #   ports:
-  #     - '0.0.0.0:8000:80'
+  #     # - '0.0.0.0:8000:80'
+  #     # - '127.0.0.1:8000:80'
+  #     - '8000:8000'
   #   # We also need to create a volume for the Docker socket,
   #   # /var/run/docker.sock.
   #   # This lets the container to attach to the docker daemon
   #   # in the host and collect all the logs.
+  #   labels:
+  #     io.rancher.scheduler.global: 'true'
+  #     io.rancher.container.hostname_override: container_name
   #   volumes:
   #     - '/var/run/docker.sock:/var/run/docker.sock'
   #   depends_on:
@@ -142,28 +302,75 @@ services:
   #       reservations:
   #         cpus: '0.25'
   #         memory: 32M
+  #
 
 
   kibana:
     # image: docker.elastic.co/kibana/kibana:5.3.2
-    image: docker.elastic.co/kibana/kibana:5.6.1
+    # image: docker.elastic.co/kibana/kibana:5.6.1
+    image: docker.io/bossjones/kibana:5.6.1
     networks:
-      # - logging
       - default
       - monitor_monitoring
     # The router mesh feature will then let us access
     # kibana from port 8088 of any host in the swarm.
-    # FIXME: 8088, this needs to get change cause it is the same as influxdb!!!!
+    expose:
+      - '5601'
     ports:
-      - '8088:5601'
+      # - '127.0.0.1:5601:5601'
+      - '0.0.0.0:5601:5601'
     depends_on:
       - elasticsearch
     environment:
+      # ELASTICSEARCH_URL: 'http://elasticsearch:9200'
+      # XPACK_SECURITY_ENABLED: 'false'
+      # XPACK_MONITORING_ENABLED: 'false'
+      # xpack.monitoring.ui.container.elasticsearch.enabled: 'false'
+      XPACK_MONITORING_UI_CONTAINER_ELASTICSEARCH_ENABLED: 'false'
       ELASTICSEARCH_URL: 'http://elasticsearch:9200'
-      XPACK_SECURITY_ENABLED: 'false'
+      XPACK_GRAPH_ENABLED: 'false'
+      XPACK_ML_ENABLED: 'false'
       XPACK_MONITORING_ENABLED: 'false'
+      XPACK_REPORTING_ENABLED: 'false'
+      XPACK_SECURITY_ENABLED: 'false'
     deploy:
-      replicas: 1
+      # replicas: 1
+      # resources:
+      #   limits:
+      #     cpus: '0.25'
+      #     memory: 256M
+      #   reservations:
+      #     cpus: '0.25'
+      #     memory: 128M
       placement:
         constraints:
           - node.hostname == node-03
+
+  # FIXME: CONSIDER USING THIS!!!!!!!!!! (9/30/2017)
+  # source: https://github.com/elastic/stack-docker
+  # # Run a short-lived container to set up Logstash.
+  # setup_logstash:
+  #   image: centos:7
+  #   volumes: ['./scripts/setup-logstash.sh:/usr/local/bin/setup-logstash.sh:ro']
+  #   # The script may have CR/LF line endings if using Docker for Windows, so
+  #   # make sure that they don't confuse Bash.
+  #   command: ['/bin/bash', '-c', 'cat /usr/local/bin/setup-logstash.sh | tr -d "\r" | bash']
+  #   environment: ['ELASTIC_PASSWORD=${ELASTIC_PASSWORD}']
+  #   networks: ['stack']
+  #   depends_on: ['elasticsearch']
+
+  # packetbeat:
+  #   image: docker.elastic.co/beats/packetbeat:${TAG}
+  #   # Packetbeat needs some elevated privileges to capture network traffic.
+  #   # We'll grant them with POSIX capabilities.
+  #   cap_add: ['NET_RAW', 'NET_ADMIN']
+  #   # Use "host mode" networking to allow Packetbeat to capture traffic from
+  #   # the real network interface on the host, rather than being isolated to the
+  #   # container's virtual interface.
+  #   network_mode: host
+  #   # Since we did that, Packetbeat is not part of the "stack" Docker network
+  #   # that the other containers are connected to, and thus can't resolve the
+  #   # hostname "elasticsearch". Instead, we'll tell it to find Elasticsearch
+  #   # on "localhost", which is the Docker host machine in this context.
+  #   command: packetbeat -v -e -E output.elasticsearch.hosts='["localhost:9200"]'
+  #   depends_on: ['elasticsearch']

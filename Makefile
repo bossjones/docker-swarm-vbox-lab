@@ -204,10 +204,10 @@ perf-es:
 	# TODO: Make sure we do a check to see if this is in there or not
 	# FIXME: Make sure we do a check to see if this is in there or not
 	# Make it perminent
-	$(DM) ssh swarm-manager echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
-	$(DM) ssh node-01 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
-	$(DM) ssh node-02 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
-	$(DM) ssh node-03 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	# $(DM) ssh swarm-manager echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	# $(DM) ssh node-01 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	# $(DM) ssh node-02 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+	# $(DM) ssh node-03 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
 
 dockviz-containers:
 	$(DOCKVIZ) containers -d | dot -Tpng -o images/containers.png
@@ -242,6 +242,10 @@ deploy-viz: install-viz
 
 create-influx:
 	@bash ./scripts/create-influx-db.sh
+
+deploy-logging-force:
+	@docker stack deploy -c docker-compose.logging.yml elk
+	@bash ./scripts/es-create-index.sh
 
 # This will start the services in the stack named elk
 deploy-logging:
@@ -323,6 +327,9 @@ open-prometheus:
 open-elasticsearch:
 	@bash ./scripts/open-elasticsearch.sh
 
+open-head-plugin:
+	@bash ./scripts/open-head-plugin.sh
+
 open-seagull:
 	@bash ./scripts/open-seagull.sh
 
@@ -335,6 +342,16 @@ open-node-exporter:
 open: open-prometheus open-viz open-portainer open-nginx open-logstash open-grafana open-kibana
 
 open-monitoring: open-influxdb open-grafana open-cadvisor open-node-exporter
+
+open-logging: open-kibana open-elasticsearch open-head-plugin open-elasticsearch-metrics
+
+# source: https://github.com/vvanholl/elasticsearch-prometheus-exporter
+# http://<your_server_address>:9200/_prometheus/metrics
+open-elasticsearch-metrics:
+	@bash ./scripts/open-elasticsearch-metrics.sh
+
+direnv-rc:
+	direnv allow .
 
 dm-start-all:
 	docker-machine start local
@@ -355,6 +372,11 @@ create-grafana:
 
 es-create-index:
 	@bash ./scripts/es-create-index.sh
+
+scan-with-nmap:
+	@bash ./scripts/scan-with-nmap.sh
+
+create-elasticsearch-index: es-create-index
 
 stop-logging:
 	docker stack rm elk

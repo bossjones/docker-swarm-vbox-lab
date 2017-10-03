@@ -21,14 +21,12 @@ services:
   influx:
     # source: https://github.com/ehazlett/interlock/blob/master/vendor/github.com/influxdata/influxdb/Dockerfile
     # admin, http, udp, cluster, graphite, opentsdb, collectd
-    # EXPOSE 8083 8086 8086/udp 8088 2003 4242 25826
+    # EXPOSE 8086 8086/udp 8088 2003 4242 25826
     expose:
-      - 8083
       - 8086
       - 8088
       - 2003
     ports:
-      - '8083:8083'
       - '8086:8086'
       - '8088:8088'
       - '2003:2003'
@@ -253,7 +251,7 @@ services:
       - '-web.console.libraries=/usr/share/prometheus/console_libraries'
       - '-web.console.templates=/usr/share/prometheus/consoles'
     expose:
-      - 9090
+      - '9090'
     ports:
       - "0.0.0.0:9090:9090"
     depends_on:
